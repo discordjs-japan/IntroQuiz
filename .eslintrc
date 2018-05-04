@@ -1,30 +1,7 @@
 {
     "env": {
-        "amd": false,
-        "applescript": false,
-        "atomtest": false,
-        "browser": false,
-        "commonjs": false,
-        "embertest": false,
         "es6": true,
-        "greasemonkey": false,
-        "jasmine": false,
-        "jest": false,
-        "jquery": false,
-        "meteor": false,
-        "mocha": false,
-        "mongo": false,
-        "nashorn": false,
-        "node": true,
-        "phantomjs": false,
-        "prototypejs": false,
-        "protractor": false,
-        "qunit": false,
-        "serviceworker": false,
-        "shared-node-browser": false,
-        "shelljs": false,
-        "webextensions": false,
-        "worker": false
+        "node": true
     },
     "rules": {
         "accessor-pairs": 2,
