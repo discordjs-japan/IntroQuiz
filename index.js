@@ -167,8 +167,8 @@ const discord = require(`discord.js`),
   ];
 
 let status = false,
-    songinfo = ``,
-    connection = ``;
+  songinfo = ``,
+  connection = ``;
 
 client.on(`ready`, () => {
   console.log(`ログインが完了しました。`);
@@ -238,22 +238,22 @@ client.on(`message`, (msg) => {
         }
       }
     }
-  } else if(status) {
-    if(~songinfo[1].split(` `).indexOf(msg.content))
+  } else if (status) {
+    if (~songinfo[1].split(` `).indexOf(msg.content))
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
-      connection.disconnect();
-      nextquiz(msg);
+    connection.disconnect();
+    nextquiz(msg);
   }
 });
 
 function nextquiz(msg, number = 0) {
   msg.channel.send(`${++number} 問目！五秒後に始まるよ！`);
   setTimeout(() => {
-      msg.channel.send(`スタート！この曲は何でしょう？音楽の再生が終了するまで誰も答えられなかった場合は、誰にもポイントは入りません。`);
+    msg.channel.send(`スタート！この曲は何でしょう？音楽の再生が終了するまで誰も答えられなかった場合は、誰にもポイントは入りません。`);
     songinfo = songs[Math.floor(Math.random() * songs.length)];
     console.log(songinfo);
-    const stream = ytdl(songinfo[0], {"filter": `audioonly`}),
-          dispatcher = connection.playStream(stream);
+    const stream = ytdl(songinfo[0], { "filter": `audioonly` }),
+      dispatcher = connection.playStream(stream);
     dispatcher.on(`end`, (end) => {
       msg.channel.send(`音楽の再生が終了しました！答えは「${songinfo[1]}」でした！残念...\nYouTube: https://youtu.be/${songinfo[0]}`);
       nextquiz(msg, number);
