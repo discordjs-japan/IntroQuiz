@@ -14,7 +14,7 @@ const discord = require(`discord.js`),
     [`slxaN92y7hk`, `Bryan Mason Karner H Bassjump`],
     [`LrTYqFW62ek`, `Astrid S Breathe (Ava Remix)`],
     [`ih2xubMaZWI`, `OMFG Hello`],
-    [`qn-X5A0gbMA`, `OMFG I Love You`]
+    [`qn-X5A0gbMA`, `OMFG I Love You`],
     [`36SVBZhC6iA`, `Cosmic Out Of Control`],
     [`HtkImmE7VfA`, `Stefan Nixdorf Commodus Pt.2`],
     [`JahJfGvn_zQ`, `Cupidz Sheet`],
