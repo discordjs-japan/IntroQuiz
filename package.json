@@ -1,0 +1,22 @@
+{
+  "name": "introquiz",
+  "version": "0.0.1",
+  "description": "Discord のイントロクイズボット",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DJS-JPN/Quiz.git"
+  },
+  "keywords": [
+    "Discord"
+  ],
+  "author": "DJS-JPN",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DJS-JPN/Quiz/issues"
+  },
+  "homepage": "https://github.com/DJS-JPN/Quiz#readme"
+}
