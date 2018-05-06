@@ -14,7 +14,7 @@ const discord = require(`discord.js`),
     [`slxaN92y7hk`, `Bryan Mason Karner H Bassjump`],
     [`LrTYqFW62ek`, `Astrid S Breathe (Ava Remix)`],
     [`ih2xubMaZWI`, `OMFG Hello`],
-    [`qn-X5A0gbMA`, `OMFG I Love You`]
+    [`qn-X5A0gbMA`, `OMFG I Love You`],
     [`36SVBZhC6iA`, `Cosmic Out Of Control`],
     [`HtkImmE7VfA`, `Stefan Nixdorf Commodus Pt.2`],
     [`JahJfGvn_zQ`, `Cupidz Sheet`],
@@ -167,8 +167,10 @@ const discord = require(`discord.js`),
   ];
 
 let status = false,
+  correct = false,
   songinfo = ``,
-  connection = ``;
+  connection = ``,
+  dispatcher;
 
 client.on(`ready`, () => {
   console.log(`ログインが完了しました。`);
@@ -210,11 +212,8 @@ client.on(`message`, (msg) => {
         if (msg.member.voiceChannel) {
           msg.member.voiceChannel.join().then((con) => {
             connection = con;
-            msg.channel.send(`５秒後にイントロクイズを開始します。`);
-            setTimeout(() => {
-              status = true;
-              nextquiz(msg);
-            }, 5000);
+            status = true;
+            nextquiz(msg);
           }).catch((error) => {
             if (msg.member.voiceChannel.full) {
               msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} は満員のため、参加することができませんでした。`);
@@ -232,33 +231,37 @@ client.on(`message`, (msg) => {
       if (split[1] === `end`) {
         if (status) {
           status = false;
+          correct = false;
           msg.channel.send(`イントロクイズを終了しました。`);
         } else {
-          msg.channel.send(`既にイントロクイズは終了しています。`);
+          msg.channel.send(`イントロクイズが既に終了されているか、まだ開始されていません。`);
         }
       }
     }
   } else if (status) {
     if (~songinfo[1].split(` `).indexOf(msg.content))
-      msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
-    connection.disconnect();
+      correct = true;
+    msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
+    dispatcher.end();
     nextquiz(msg);
   }
 });
 
 function nextquiz(msg, number = 0) {
   msg.channel.send(`${++number} 問目！五秒後に始まるよ！`);
+  correct = false;
   setTimeout(() => {
     msg.channel.send(`スタート！この曲は何でしょう？音楽の再生が終了するまで誰も答えられなかった場合は、誰にもポイントは入りません。`);
     songinfo = songs[Math.floor(Math.random() * songs.length)];
     console.log(songinfo);
-    const stream = ytdl(songinfo[0], { "filter": `audioonly` }),
-      dispatcher = connection.playStream(stream);
+    const stream = ytdl(songinfo[0], {"filter": `audioonly`});
+    dispatcher = connection.playStream(stream);
     dispatcher.on(`end`, (end) => {
-      msg.channel.send(`音楽の再生が終了しました！答えは「${songinfo[1]}」でした！残念...\nYouTube: https://youtu.be/${songinfo[0]}`);
+      if (!correct)
+        msg.channel.send(`音楽の再生が終了しました！答えは「${songinfo[1]}」でした！残念...\nYouTube: https://youtu.be/${songinfo[0]}`);
       nextquiz(msg, number);
     });
-  });
+  }, 5000);
 };
 
 client.login(token);
