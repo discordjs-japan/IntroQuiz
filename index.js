@@ -262,6 +262,6 @@ function nextquiz(msg, number = 0) {
       nextquiz(msg, number);
     });
   }, 5000);
-};
+}
 
 client.login(token);
