@@ -2,20 +2,22 @@ const discord = require(`discord.js`),
   client = new discord.Client(),
   prefix = `q.`, //Bot prefix
   token = ``, //Your bot token
+  apiKey = ``, //YouTube Data API key
   ytdl = require(`ytdl-core`),
-  songs = require(`./songs.js`);
+  ypi = require(`youtube-playlist-info`);
 
 let status = false,
   correct = false,
   songinfo = ``,
   connection = ``,
-  dispatcher;
+  dispatcher,
+  songs;
 
 client.on(`ready`, () => {
   console.log(`ログインが完了しました。`);
 });
 
-client.on(`message`, (msg) => {
+client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot) return;
   if (msg.content.startsWith(prefix)) {
@@ -49,6 +51,9 @@ client.on(`message`, (msg) => {
     } else if (split[0] === `quiz`) {
       if (split[1] === `start`) {
         if (msg.member.voiceChannel) {
+          if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
+          msg.channel.send(`再生リスト読み込み中...`);
+          songs = await ypi(apiKey, split[2]).catch((error) => msg.channel.send(`再生リスト読み込みエラー：${error}`));
           msg.member.voiceChannel.join().then((con) => {
             connection = con;
             status = true;

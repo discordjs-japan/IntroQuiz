@@ -24,6 +24,7 @@
     "ffmpeg-binaries": "^3.2.2-3",
     "node-opus": "^0.2.7",
     "opusscript": "0.0.6",
+    "youtube-playlist-info": "^1.1.2",
     "ytdl-core": "^0.20.2"
   }
 }
