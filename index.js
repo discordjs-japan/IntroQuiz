@@ -21,7 +21,7 @@ client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
   if (msg.content.startsWith(prefix)) {
-    const split = msg.content.replace(prefix, ``).split(` `),
+    const split = msg.content.replace(prefix, ``).split(` `).slice(1),
       command = split[0];
     if (typeof this[command] === `function`) {
       if (command === `nextquiz`) return;
