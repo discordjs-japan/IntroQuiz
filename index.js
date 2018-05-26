@@ -23,9 +23,9 @@ client.on(`message`, async (msg) => {
   if (msg.content.startsWith(prefix)) {
     const split = msg.content.replace(prefix, ``).split(` `).slice(1),
       command = split[0];
-    if (typeof this[command] === `function`) {
+    if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
-      this[command](msg, split);
+      global[command](msg, split);
     }
   } else if (status) {
     if (~songinfo[1].split(` `).indexOf(msg.content)) {
