@@ -1,14 +1,12 @@
-const discord = require(`discord.js`),
+const {"parsed": env} = require(`dotenv-safe`),
+  discord = require(`discord.js`),
   client = new discord.Client(),
-  prefix = `q.`, //Bot prefix
-  token = ``, //Your bot token
-  apiKey = ``, //YouTube Data API key
   ytdl = require(`ytdl-core`),
   request = require(`Request`);
 
 let status = false,
   correct = false,
-  songinfo = ``, 
+  songinfo = ``,
   connection = ``,
   dispatcher,
   songs;
@@ -20,8 +18,8 @@ client.on(`ready`, () => {
 client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
-  if (msg.content.startsWith(prefix)) {
-    const split = msg.content.replace(prefix, ``).split(` `),
+  if (msg.content.startsWith(env.PREFIX)) {
+    const split = msg.content.replace(env.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
@@ -84,10 +82,10 @@ global.quiz = async (msg, split) => {
           "part": `snippet`,
           "playlistId": `PLNguHNuEe1KuU2mhn9vILH9Iz--z5a3v6`,
           "maxResults": 50,
-          "key": apiKey
+          "key": env.APIKEY
         },
         "url": `https://www.googleapis.com/youtube/v3/playlistItems`
-      }, (error, result, body) => { 
+      }, (error, result, body) => {
         if (!error) {
           for (let i = 0; i <= body.items.length; i++) {
 
@@ -144,4 +142,4 @@ function nextquiz(msg, number = 0) {
   }, 5000);
 }
 
-client.login(token);
+client.login(env.TOKEN);
