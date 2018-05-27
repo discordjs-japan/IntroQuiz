@@ -4,11 +4,11 @@ const discord = require(`discord.js`),
   token = ``, //Your bot token
   apiKey = ``, //YouTube Data API key
   ytdl = require(`ytdl-core`),
-  ypi = require(`youtube-playlist-info`);
+  request = require(`Request`);
 
 let status = false,
   correct = false,
-  songinfo = ``,
+  songinfo = ``, 
   connection = ``,
   dispatcher,
   songs;
@@ -21,7 +21,7 @@ client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
   if (msg.content.startsWith(prefix)) {
-    const split = msg.content.replace(prefix, ``).split(` `).slice(1),
+    const split = msg.content.replace(prefix, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
@@ -35,12 +35,11 @@ client.on(`message`, async (msg) => {
     }
   }
 });
-
-function ping(msg, split) {
+global.ping = (msg, split) => {
   msg.channel.send(`ポン！ Ping の確認に成功しました！ボットの Ping は ${Math.floor(client.ping)}ms です！`);
-}
+};
 
-function connect(msg, split) {
+global.connect = (msg, split) => {
   if (msg.member.voiceChannel) {
     msg.member.voiceChannel.join().then((connection) =>
       msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」の参加に成功しました。`)
@@ -57,24 +56,46 @@ function connect(msg, split) {
   } else {
     msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
   }
-}
+};
 
-function disconnect(msg, split) {
+global.disconnect = (msg, split) => {
   if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
     msg.member.voiceChannel.leave();
     msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
   } else {
     msg.channel.send(`ボットが退出するボイスチャンネルに参加してからもう一度お試しください。`);
   }
-}
+};
 
-async function quiz(msg, split) {
+global.quiz = async (msg, split) => {
   if (split[1] === `start`) {
     if (status) return;
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
       msg.channel.send(`再生リスト読み込み中...`);
-      songs = await ypi(apiKey, split[2]).catch((error) => msg.channel.send(`再生リスト読み込みエラー：${error}`));
+      request({
+        "headers": {
+          "Content-Type": `application/json`,
+          "User-Agent": `IntroQuiz`
+        },
+        "json": true,
+        "method": `POST`,
+        "qs": {
+          "part": `snippet`,
+          "playlistId": `PLNguHNuEe1KuU2mhn9vILH9Iz--z5a3v6`,
+          "maxResults": 50,
+          "key": apiKey
+        },
+        "url": `https://www.googleapis.com/youtube/v3/playlistItems`
+      }, (error, result, body) => { 
+        if (!error) {
+          for (let i = 0; i <= body.items.length; i++) {
+
+            //song.push(b.items[i].`ここよくわかんない`);
+
+          }
+        }
+      });
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
         status = true;
@@ -104,8 +125,7 @@ async function quiz(msg, split) {
       msg.channel.send(`イントロクイズが既に終了されているか、まだ開始されていません。`);
     }
   }
-}
-
+};
 
 function nextquiz(msg, number = 0) {
   msg.channel.send(`${++number} 問目！五秒後に始まるよ！`);
