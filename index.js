@@ -1,8 +1,8 @@
-const {"parsed": env} = require(`dotenv-safe`),
+const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
-  request = require(`Request`);
+  ypi = require(`youtube-playlist-info`);
 
 let status = false,
   correct = false,
@@ -26,7 +26,7 @@ client.on(`message`, async (msg) => {
       global[command](msg, split);
     }
   } else if (status) {
-    if (~songinfo[1].split(` `).indexOf(msg.content)) {
+    if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
       dispatcher.end();
@@ -71,29 +71,9 @@ global.quiz = async (msg, split) => {
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
       msg.channel.send(`再生リスト読み込み中...`);
-      request({
-        "headers": {
-          "Content-Type": `application/json`,
-          "User-Agent": `IntroQuiz`
-        },
-        "json": true,
-        "method": `POST`,
-        "qs": {
-          "part": `snippet`,
-          "playlistId": `PLNguHNuEe1KuU2mhn9vILH9Iz--z5a3v6`,
-          "maxResults": 50,
-          "key": env.APIKEY
-        },
-        "url": `https://www.googleapis.com/youtube/v3/playlistItems`
-      }, (error, result, body) => {
-        if (!error) {
-          for (let i = 0; i <= body.items.length; i++) {
-
-            //song.push(b.items[i].`ここよくわかんない`);
-
-          }
-        }
-      });
+      const list = await ypi(env.APIKEY, split[2]).
+        catch((error) => msg.channel.send(`再生リスト読み込みエラー：${error}`));
+      songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
         status = true;
