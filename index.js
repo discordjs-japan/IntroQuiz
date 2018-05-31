@@ -24,6 +24,8 @@ client.on(`message`, async (msg) => {
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
       global[command](msg, split);
+    } else {
+      msg.channel.send(":x: そのようなコマンドはありません。");
     }
   } else if (status) {
     if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
@@ -71,6 +73,7 @@ global.quiz = async (msg, split) => {
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
       msg.channel.send(`再生リスト読み込み中...`);
+      split[2] = split[2].replace("https://www.youtube.com/playlist?list=", "");
       const list = await ypi(env.APIKEY, split[2]).
         catch((error) => msg.channel.send(`再生リスト読み込みエラー：${error}`));
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
@@ -92,7 +95,7 @@ global.quiz = async (msg, split) => {
       msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
     }
   }
-  if (split[1] === `end`) {
+  if (split[1] === `end` || split[1] === `stop`) {
     if (status) {
       status = false;
       correct = false;
