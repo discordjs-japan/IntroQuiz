@@ -24,6 +24,8 @@ client.on(`message`, async (msg) => {
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
       global[command](msg, split);
+    } else {
+      msg.channel.send(":x: そのようなコマンドはありません。");
     }
   } else if (status) {
     if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
