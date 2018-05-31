@@ -1,8 +1,6 @@
-const discord = require(`discord.js`),
+const {"parsed": env} = require(`dotenv-safe`).config(),
+  discord = require(`discord.js`),
   client = new discord.Client(),
-  prefix = `q.`, //Bot prefix
-  token = ``, //Your bot token
-  apiKey = ``, //YouTube Data API key
   ytdl = require(`ytdl-core`),
   ypi = require(`youtube-playlist-info`);
 
@@ -20,27 +18,26 @@ client.on(`ready`, () => {
 client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
-  if (msg.content.startsWith(prefix)) {
-    const split = msg.content.replace(prefix, ``).split(` `).slice(1),
+  if (msg.content.startsWith(env.PREFIX)) {
+    const split = msg.content.replace(env.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
       global[command](msg, split);
     }
   } else if (status) {
-    if (~songinfo[1].split(` `).indexOf(msg.content)) {
+    if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
       dispatcher.end();
     }
   }
 });
-
-function ping(msg, split) {
+global.ping = (msg, split) => {
   msg.channel.send(`ポン！ Ping の確認に成功しました！ボットの Ping は ${Math.floor(client.ping)}ms です！`);
-}
+};
 
-function connect(msg, split) {
+global.connect = (msg, split) => {
   if (msg.member.voiceChannel) {
     msg.member.voiceChannel.join().then((connection) =>
       msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」の参加に成功しました。`)
@@ -57,24 +54,26 @@ function connect(msg, split) {
   } else {
     msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
   }
-}
+};
 
-function disconnect(msg, split) {
+global.disconnect = (msg, split) => {
   if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
     msg.member.voiceChannel.leave();
     msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
   } else {
     msg.channel.send(`ボットが退出するボイスチャンネルに参加してからもう一度お試しください。`);
   }
-}
+};
 
-async function quiz(msg, split) {
+global.quiz = async (msg, split) => {
   if (split[1] === `start`) {
     if (status) return;
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
       msg.channel.send(`再生リスト読み込み中...`);
-      songs = await ypi(apiKey, split[2]).catch((error) => msg.channel.send(`再生リスト読み込みエラー：${error}`));
+      const list = await ypi(env.APIKEY, split[2]).
+        catch((error) => msg.channel.send(`再生リスト読み込みエラー：${error}`));
+      songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
         status = true;
@@ -104,8 +103,7 @@ async function quiz(msg, split) {
       msg.channel.send(`イントロクイズが既に終了されているか、まだ開始されていません。`);
     }
   }
-}
-
+};
 
 function nextquiz(msg, number = 0) {
   msg.channel.send(`${++number} 問目！五秒後に始まるよ！`);
@@ -124,4 +122,4 @@ function nextquiz(msg, number = 0) {
   }, 5000);
 }
 
-client.login(token);
+client.login(env.TOKEN);
