@@ -92,11 +92,13 @@ global.quiz = async (msg, split) => {
       const list = await ypi(env.APIKEY, split[2]).
         catch((error) => {
 	  if (error == "Error: The request is not properly authorized to retrieve the specified playlist.") {
-	      msg.channel.send(":x: このプレイリストは非公開です。");
-	      return;
+	    return msg.channel.send(":x: このプレイリストは非公開です。");
+	  } else if (error == "Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.") {
+	    return msg.channel.send(":x: このプレイリストは存在しません。");
+	  } else if (error == "Error: Bad Request") {
+	    return msg.channel.send(":x: Bad Request: YouTube Data APIキーが間違っている可能性があります。");
 	  } else {
-	    msg.channel.send(`再生リスト読み込みエラー：\`${error}\``);
-	    return;
+	    return msg.channel.send(`再生リスト読み込みエラー：\`${error}\``);
 	  }
 	});
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
