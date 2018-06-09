@@ -31,8 +31,8 @@ client.on(`message`, async (msg) => {
     }
   } else if (status) {
     let a = song_replace(songinfo[1]);
-    // if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
-    if (~songinfo[1].indexOf(a)) {
+    let b = another_song_replace(songinfo[1]); // pickup another answer
+    if (~songinfo[1].indexOf(a) || ~songinfo[1].indexOf(b)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
       dispatcher.end();
@@ -150,18 +150,52 @@ global.test = (msg, split) => {
   msg.channel.send("Extracted name: `" + song_replace(msg.content) + "`");
 };
 
+global.testanother = (msg, split) => {
+  msg.channel.send("Extracted name: `" + another_song_replace(msg.content) + "`");
+};
+
+global.testmulti = (msg, split) => {
+  let embed = new discord.RichEmbed()
+    .setTitle("判定テスト")
+    .addField("1つ目の答え", song_replace(msg.content))
+    .addField("2つ目の答え", another_song_replace(msg.content));
+  msg.channel.send(embed);
+};
+
 function song_replace(name) {
     let songname = name;
     let a = songname.replace(env.PREFIX + "test ", "");
     a = a.replace("「", "").replace(/」[^]*/gm, "");
     a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
-    a = a.replace(/[^]*(\\.|[^- ])*- /gm, "");
+    a = a.replace(/【.*?】/g, "");
+////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
     a = a.replace(/[^]*(\\.|[^／])／/gm, "");
     a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
-    a = a.replace(/\(.*/gm, "");
+//    a = a.replace(/\(.*/gm, "");
     a = a.replace(/"/, "").replace(/"/, "");
-    a = a.replace(/-[^]*/gm, "");
+//    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, "");
+    a = a.replace(/\/.*/, "");
+    a = a.replace(/.* -/g, "");
+    let result = a.replace(/（.*/gm, "");
+    return result;
+}
+
+function another_song_replace(name) {
+    let songname = name;
+    let a = songname.replace(env.PREFIX + "testanother ", "");
+    a = a.replace("「", "").replace(/」[^]*/gm, "");
+    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+    a = a.replace(/【.*?】/g, "");
+////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
+    a = a.replace(/[^]*(\\.|[^／])／/gm, "");
+    a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
+//    a = a.replace(/\(.*/gm, "");
+    a = a.replace(/"/, "").replace(/"/, "");
+//    a = a.replace(/-[^]*/gm, "");
+    a = a.replace(/\[[^]*/gm, "");
+    a = a.replace(/.*\//, "");
+    a = a.replace(/.* -/g, "");
     let result = a.replace(/（.*/gm, "");
     return result;
 }
