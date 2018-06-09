@@ -161,6 +161,7 @@ function song_replace(name) {
     a = a.replace(/\(.*/gm, "");
     a = a.replace(/"/, "").replace(/"/, "");
     a = a.replace(/-[^]*/gm, "");
+    a = a.replace(/\[[^]*/gm, "");
     let result = a.replace(/（.*/gm, "");
     return result;
 }
