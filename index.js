@@ -30,12 +30,7 @@ client.on(`message`, async (msg) => {
       msg.channel.send(":x: そのようなコマンドはありません。");
     }
   } else if (status) {
-    let a = songinfo[1].replace("「", "").replace(/」[^]*/gm, "");
-    a = a.replace(/[^]*(\\.|[^- ])*- /gm, "");
-    a = a.replace(/[^]*(\\.|[^／])／/gm, "");
-    a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace("」", "");
-    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/（.*/gm, "");
+    let a = song_replace(songinfo[1]);
     // if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
     if (~songinfo[1].indexOf(a)) {
       correct = true;
@@ -149,6 +144,25 @@ function nextquiz(msg, number = 0) {
       if (status) nextquiz(msg, number);
     });
   }, 5000);
+}
+
+global.test = (msg, split) => {
+  msg.channel.send("Extracted name: `" + song_replace(msg.content) + "`");
+};
+
+function song_replace(name) {
+    let songname = name;
+    let a = songname.replace(env.PREFIX + "test ", "");
+    a = a.replace("「", "").replace(/」[^]*/gm, "");
+    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+    a = a.replace(/[^]*(\\.|[^- ])*- /gm, "");
+    a = a.replace(/[^]*(\\.|[^／])／/gm, "");
+    a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
+    a = a.replace(/\(.*/gm, "");
+    a = a.replace(/"/, "").replace(/"/, "");
+    a = a.replace(/-[^]*/gm, "");
+    let result = a.replace(/（.*/gm, "");
+    return result;
 }
 
 client.login(env.TOKEN);
