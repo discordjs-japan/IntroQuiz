@@ -30,8 +30,8 @@ client.on(`message`, async (msg) => {
       msg.channel.send(":x: そのようなコマンドはありません。");
     }
   } else if (status) {
-    let a = song_replace(msg.content);
-    let b = another_song_replace(msg.content); // pickup another answer
+    let a = song_replace(songinfo[1]);
+    let b = another_song_replace(songinfo[1]); // pickup another answer
     if (~songinfo[1].indexOf(a) || ~songinfo[1].indexOf(b)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
@@ -194,7 +194,7 @@ function another_song_replace(name) {
     a = a.replace(/"/, "").replace(/"/, "");
 //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, "");
-    a = a.replace(/.*\//, ""); // 答え2の判定
+    a = a.replace(/.*\//, "");
     a = a.replace(/.* -/g, "");
     let result = a.replace(/（.*/gm, "");
     return result;
