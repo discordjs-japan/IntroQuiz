@@ -30,7 +30,14 @@ client.on(`message`, async (msg) => {
       msg.channel.send(":x: そのようなコマンドはありません。");
     }
   } else if (status) {
-    if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
+    let a = songinfo[1].replace("「", "").replace(/」[^]*/gm, "");
+    a = a.replace(/[^]*(\\.|[^- ])*- /gm, "");
+    a = a.replace(/[^]*(\\.|[^／])／/gm, "");
+    a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace("」", "");
+    a = a.replace(/\(.*/gm, "");
+    a = a.replace(/（.*/gm, "");
+    // if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
+    if (~songinfo[1].indexOf(a)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
       dispatcher.end();
@@ -83,7 +90,17 @@ global.quiz = async (msg, split) => {
         split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, "");
       }
       const list = await ypi(env.APIKEY, split[2]).
-        catch((error) => msg.channel.send(`再生リスト読み込みエラー：\`${error}\` (\`${split[2]})\``));
+        catch((error) => {
+	  if (error == "Error: The request is not properly authorized to retrieve the specified playlist.") {
+	    return msg.channel.send(":x: このプレイリストは非公開です。");
+	  } else if (error == "Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.") {
+	    return msg.channel.send(":x: このプレイリストは存在しません。");
+	  } else if (error == "Error: Bad Request") {
+	    return msg.channel.send(":x: Bad Request: YouTube Data APIキーが間違っている可能性があります。");
+	  } else {
+	    return msg.channel.send(`再生リスト読み込みエラー：\`${error}\``);
+	  }
+	});
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
