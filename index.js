@@ -218,7 +218,11 @@ function song_replace2(name) {
 function song_replace3(name) { // almost same at another_song_replace(name)
   let songname = name;
   let a = songname.replace("「", "").replace(/」[^]*/gm, "");
-  a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+  if (/.*『.*』.*-.*／.*/gm.test(a)) {
+    a = a.replace(/／.*/g, "").replace(/[^]*(\\.|[^- ])*- /gm, "");
+  } else {
+    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+  }
   a = a.replace(/【.*?】/g, "");
 ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
   a = a.replace(/[^]*(\\.|[^／])／/gm, "");
@@ -234,6 +238,8 @@ function song_replace3(name) { // almost same at another_song_replace(name)
   } else {
     a = a.replace(/.* -/g, "");
   }
+  a = a.replace(/-.*/, "");
+  a = a.replace(/　/gm, "");
   let result = a.replace(/（.*/gm, "");
   return result;
 }
