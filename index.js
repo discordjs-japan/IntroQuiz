@@ -210,6 +210,7 @@ function song_replace2(name) {
     } else {
       a = a.replace(/.* -/g, "");
     }
+    a = a.replace(/.*:: /gm, "");
     let result = a.replace(/（.*/gm, "");
     return result;
 }
