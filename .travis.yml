@@ -3,3 +3,7 @@ node_js:
   - "node"
 before_install:
   - npm i -g npm@latest
+  - npm i discord.js
+  - npm i dotenv-safe
+  - npm i ytdl-core
+  - npm i youtube-playlist-info
