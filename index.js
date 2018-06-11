@@ -17,8 +17,7 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
-  ypi = require(`youtube-playlist-info`),
-  process = require(`process`);
+  ypi = require(`youtube-playlist-info`);
 
 let status = false,
   correct = false,
