@@ -76,7 +76,7 @@ global.ping = (msg, split) => {
 
 global.help = (msg, split) => {
   let embed = new discord.RichEmbed()
-    .setTitle("コマンド一覧")
+    .setTitle(`コマンド一覧(現在のプレフィックス: \`${settings.PREFIX}\`)`)
     .setTimestamp()
     .setFooter("ヘルプコマンド(help)")
     .addField("help", "ヘルプを表示")
@@ -84,7 +84,8 @@ global.help = (msg, split) => {
     .addField("connect", "ボイスチャンネルに接続")
     .addField("disconnect", "ボイスチャットから切断")
     .addField("quiz start <YouTubeプレイリスト>", "イントロクイズを開始")
-    .addField("quiz <end|stop>", "イントロクイズを終了");
+    .addField("quiz <end|stop>", "イントロクイズを終了")
+    .addField("setprefix <プレフィックス>", "プレフィックスを設定");
   msg.channel.send(embed);
 };
 
@@ -108,7 +109,7 @@ global.connect = (msg, split) => {
 };
 
 global.disconnect = (msg, split) => {
-  if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
+  if (msg.guild.me.voiceChannelID) {
     client.clearTimeout(timeout);
     channel = null;
     if (status) {
@@ -119,8 +120,6 @@ global.disconnect = (msg, split) => {
     }
     msg.member.voiceChannel.leave();
     msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
-  } else {
-    msg.channel.send(`ボイスチャンネルに参加してからもう一度お試しください。`);
   }
 };
 
@@ -223,6 +222,7 @@ global.testmulti = (msg, split) => {
 };
 
 global.setprefix = (msg, split) => {
+  if (!msg.member.hasPermission(8) || msg.author != "<@254794124744458241>") return msg.channel.send(":x: 実行には権限が必要です。");
   let set = settings;
   if (/\s/gm.test(split[1]) || split[1] == null) {
     msg.channel.send("無効な文字列です。");
