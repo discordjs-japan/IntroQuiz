@@ -12,7 +12,6 @@
 // GitLab Repository: https://gitlab.com/DJS-JPN/IntroQuiz
 //
 
-
 const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
@@ -223,6 +222,16 @@ global.testmulti = (msg, split) => {
   msg.channel.send(embed);
 };
 
+global.setprefix = (msg, split) => {
+  let set = settings;
+  if (/\s/gm.test(split[1]) || split[1] == null) {
+    msg.channel.send("無効な文字列です。");
+  } else {
+    set.PREFIX = split[1];
+    writeSettings(guildSettings, set, msg.channel);
+  }
+};
+
 function song_replace(name) {
     let a = name.replace("「", "").replace(/」[^]*/gm, "");
     a = a.replace(/ -.*/gm, "");
@@ -307,6 +316,11 @@ function song_replace3(name) {
   a = a.replace(/ feat.*/gm, "");
   let result = a.replace(/（.*/gm, "");
   return result;
+}
+
+function writeSettings(settingsFile, wsettings, channel) {
+  fs.writeFileSync(settingsFile, JSON.stringify(wsettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
+  channel.send("設定を保存しました。");
 }
 
 process.on('SIGINT', function() {
