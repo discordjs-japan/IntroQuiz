@@ -70,6 +70,7 @@ global.help = (msg, split) => {
     .addField("disconnect", "ボイスチャットから切断")
     .addField("quiz start <YouTubeプレイリスト>", "イントロクイズを開始")
     .addField("quiz <end|stop>", "イントロクイズを終了");
+  msg.channel.send(embed);
 };
 
 global.connect = (msg, split) => {
