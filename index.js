@@ -59,6 +59,19 @@ global.ping = (msg, split) => {
   msg.channel.send(`ポン！ Ping の確認に成功しました！ボットの Ping は ${Math.floor(client.ping)}ms です！`);
 };
 
+global.help = (msg, split) => {
+  let embed = new discord.RichEmbed()
+    .setTitle("コマンド一覧")
+    .setTimestamp()
+    .setFooter("ヘルプコマンド(help)")
+    .addField("help", "ヘルプを表示")
+    .addField("ping", "ボットのPingを確認")
+    .addField("connect", "ボイスチャンネルに接続")
+    .addField("disconnect", "ボイスチャットから切断")
+    .addField("quiz start <YouTubeプレイリスト>", "イントロクイズを開始")
+    .addField("quiz <end|stop>", "イントロクイズを終了");
+};
+
 global.connect = (msg, split) => {
   if (msg.member.voiceChannel) {
     msg.member.voiceChannel.join().then((connection) =>
