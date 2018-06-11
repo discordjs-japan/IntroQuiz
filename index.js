@@ -24,9 +24,9 @@ let status = false,
   songinfo = ``,
   connection = ``,
   dispatcher,
+  timeout,
+  channel,
   songs;
-
-var timeout = null;
 
 client.on(`ready`, () => {
   console.log(`ログインが完了しました。`);
@@ -48,7 +48,7 @@ client.on(`message`, async (msg) => {
     let a = song_replace(songinfo[1]);
     let b = song_replace2(songinfo[1]); // pickup another answer
     let c = song_replace3(songinfo[1]); // pickup another another answer (experimental)
-    if (~songinfo[1].indexOf(a) || ~songinfo[1].indexOf(b) || ~songinfo[1].indexOf(c)) {
+    if (~msg.content.indexOf(a) || ~msg.content.indexOf(b) || ~msg.content.indexOf(c)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
       dispatcher.end();
@@ -93,6 +93,14 @@ global.connect = (msg, split) => {
 
 global.disconnect = (msg, split) => {
   if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
+    client.clearTimeout(timeout);
+    channel = null;
+    if (status) {
+      status = false;
+      correct = false;
+      dispatcher.end();
+      connection.disconnect();
+    }
     msg.member.voiceChannel.leave();
     msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
   } else {
@@ -147,6 +155,7 @@ global.quiz = async (msg, split) => {
   if (split[1] === `end` || split[1] === `stop`) {
     if (status) {
       client.clearTimeout(timeout);
+      channel = null;
       status = false;
       correct = false;
       dispatcher.end();
