@@ -17,7 +17,8 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
-  ypi = require(`youtube-playlist-info`);
+  ypi = require(`youtube-playlist-info`),
+  process = require(`process`);
 
 let status = false,
   correct = false,
@@ -36,6 +37,7 @@ client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
   if (msg.content.startsWith(env.PREFIX)) {
+    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
     const split = msg.content.replace(env.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
@@ -255,8 +257,13 @@ function song_replace2(name) {
     } else {
       a = a.replace(/.* -/g, "");
     }
+    a = a.replace(/ & .*/gm, "");
     a = a.replace(/[^a-zA-Z0-9!?\s]*/gm, "");
     a = a.replace(/（.*/gm, "");
+    if (a != "Intro") {
+      a = a.replace("Intro", "");
+    }
+    a = a.replace(/\s*(b|B)y.*/gm, "");
     let result = a;
     return result;
 }
@@ -277,21 +284,31 @@ function song_replace3(name) {
   a = a.replace(/".*?"/gm, "");
 //    a = a.replace(/-[^]*/gm, "");
   a = a.replace(/\[[^]*/gm, "");
-  a = a.replace(/.*\//, "");
+//  a = a.replace(/.*\//, "");
   if (/.*?-([^-].*?)-.*/gm.test(a)) {
     let result = a.replace( /.*- /, "");
     return result;
   } else {
     a = a.replace(/.* -/g, "");
   }
+  a = a.replace(/.* & /gm, "");
   a = a.replace(/-.*/, "");
   a = a.replace(/　/gm, "");
   a = a.replace(/([!]*)/gm, "");
   a = a.replace(/[^a-zA-Z0-9\s]*/gm, "");
   a = a.replace(/ feat.*/gm, "");
+  if (a != "Extended") {
+    a = a.replace("Extended", "");
+  }
   let result = a.replace(/（.*/gm, "");
   return result;
 }
+
+process.on('SIGINT', function() {
+  console.error("SIGINTを検知しました。");
+  client.destroy();
+  console.error("ボットは安全にシャットダウンしました。");
+});
 
 client.login(env.TOKEN);
 
