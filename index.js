@@ -1,11 +1,11 @@
-// |---------------------------------------------|
-// |  ____      _ ____            _ ____  _   _  |
-// | |  _ \    | / ___|          | |  _ \| \ | | |
-// | | | | |_  | \___ \ _____ _  | | |_) |  \| | |
-// | | |_| | |_| |___) |_____| |_| |  __/| |\  | |
-// | |____/ \___/|____/       \___/|_|   |_| \_| |
-// |                                             |
-// |---------------------------------------------|
+// |-----------------------------------------------------------------------------------------------------------|
+// |  ____      _ ____            _ ____  _   _    __     ____            _   _            ____   _   __  __   |
+// | |  _ \    | / ___|          | |  _ \| \ | |  | /    / ___\    /\    | \ | |    /\    |    \ \ \_/ /  \ |  |
+// | | | | |_  | \___ \ _____ _  | | |_) |  \| |  ||    | /       /  \   |  \| |   /  \   | |__/  \   /    ||  |
+// | | |_| | |_| |___) |_____| |_| |  __/| |\  |  ||    | \____  /----\  | |\  |  /----\  | |\ \   | |     ||  |
+// | |____/ \___/|____/       \___/|_|   |_| \_|  |_\    \____/ /      \ |_| \_| /      \ |_| \_\  |_|    /_|  |
+// |                                                                                                           |
+// |-----------------------------------------------------------------------------------------------------------|
 //
 // GitHub Repository: https://github.com/DJS-JPN/IntroQuiz
 //
@@ -17,7 +17,14 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
-  ypi = require(`youtube-playlist-info`);
+  ypi = require(`youtube-playlist-info`),
+  process = require(`process`),
+  fs = require(`fs`),
+  mkdirp = require(`node-mkdirp`);
+
+const defaultSettings = {
+  PREFIX: env.PREFIX,
+};
 
 let status = false,
   correct = false,
@@ -35,8 +42,17 @@ client.on(`ready`, () => {
 client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
-  if (msg.content.startsWith(env.PREFIX)) {
-    const split = msg.content.replace(env.PREFIX, ``).split(` `),
+  if(!fs.existsSync("./data/servers")) {
+      mkdirp("./data/servers");
+  }
+  guildSettings = `./data/servers/${msg.guild.id}.json`;
+  if (!fs.existsSync(guildSettings)) {
+    console.log(`設定ファイル(${guildSettings})を作成中`);
+    fs.writeFileSync(guildSettings, JSON.stringify(defaultSettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
+  }
+  settings = require(guildSettings);
+  if (msg.content.startsWith(settings.PREFIX)) {
+    const split = msg.content.replace(settings.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
@@ -186,24 +202,24 @@ function nextquiz(msg, number = 0) {
 }
 
 global.test = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace(msg.content.replace(env.PREFIX + "test ", "")) + "`");
+  msg.channel.send("Extracted name: `" + song_replace(msg.content.replace(settings.PREFIX + "test ", "")) + "`");
 };
 
 global.test2 = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace2(msg.content.replace(env.PREFIX + "test2 ", "")) + "`");
+  msg.channel.send("Extracted name: `" + song_replace2(msg.content.replace(settings.PREFIX + "test2 ", "")) + "`");
 };
 
 global.test3 = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace3(msg.content.replace(env.PREFIX + "test3 ", "")) + "`");
+  msg.channel.send("Extracted name: `" + song_replace3(msg.content.replace(settings.PREFIX + "test3 ", "")) + "`");
 };
 
 global.testmulti = (msg, split) => {
   let embed = new discord.RichEmbed()
     .setTitle("判定テスト")
-    .addField("1つ目の答え", "`" + song_replace(msg.content.replace(env.PREFIX + "testmulti ", "")) + "`")
-    .addField("2つ目の答え", "`" + song_replace2(msg.content.replace(env.PREFIX + "testmulti ", "")) + "`")
-    .addField("3つ目の答え", "`" + song_replace3(msg.content.replace(env.PREFIX + "testmulti ", "")) + "`")
-    .setFooter("元テキスト: `" + msg.content + "` / コマンド抜き: `" + msg.content.replace(env.PREFIX + "testmulti ", "") +"`");
+    .addField("1つ目の答え", "`" + song_replace(msg.content.replace(settings.PREFIX + "testmulti ", "")) + "`")
+    .addField("2つ目の答え", "`" + song_replace2(msg.content.replace(settings.PREFIX + "testmulti ", "")) + "`")
+    .addField("3つ目の答え", "`" + song_replace3(msg.content.replace(settings.PREFIX + "testmulti ", "")) + "`")
+    .setFooter("元テキスト: `" + msg.content + "` / コマンド抜き: `" + msg.content.replace(settings.PREFIX + "testmulti ", "") +"`");
   msg.channel.send(embed);
 };
 
@@ -292,6 +308,12 @@ function song_replace3(name) {
   let result = a.replace(/（.*/gm, "");
   return result;
 }
+
+process.on('SIGINT', function() {
+  console.error("SIGINTを検知しました。");
+  client.destroy();
+  console.error("ボットは安全にシャットダウンしました。");
+});
 
 client.login(env.TOKEN);
 
