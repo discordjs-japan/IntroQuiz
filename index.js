@@ -1,3 +1,18 @@
+// |---------------------------------------------|
+// |  ____      _ ____            _ ____  _   _  |
+// | |  _ \    | / ___|          | |  _ \| \ | | |
+// | | | | |_  | \___ \ _____ _  | | |_) |  \| | |
+// | | |_| | |_| |___) |_____| |_| |  __/| |\  | |
+// | |____/ \___/|____/       \___/|_|   |_| \_| |
+// |                                             |
+// |---------------------------------------------|
+//
+// GitHub Repository: https://github.com/DJS-JPN/IntroQuiz
+//
+// GitLab Repository: https://gitlab.com/DJS-JPN/IntroQuiz
+//
+
+
 const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
@@ -148,29 +163,31 @@ function nextquiz(msg, number = 0) {
 }
 
 global.test = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace(msg.content.replace(env.PREFIX + "test", "")) + "`");
+  msg.channel.send("Extracted name: `" + song_replace(msg.content.replace(env.PREFIX + "test ", "")) + "`");
 };
 
 global.test2 = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace2(msg.content.replace(env.PREFIX + "test2", "")) + "`");
+  msg.channel.send("Extracted name: `" + song_replace2(msg.content.replace(env.PREFIX + "test2 ", "")) + "`");
 };
 
 global.test3 = (msg, split) => {
-  msg.channel.send("Extracted name(experimental): `" + song_replace3(msg.content.replace(env.PREFIX + "test3", "")) + "`");
+  msg.channel.send("Extracted name: `" + song_replace3(msg.content.replace(env.PREFIX + "test3 ", "")) + "`");
 };
 
 global.testmulti = (msg, split) => {
   let embed = new discord.RichEmbed()
     .setTitle("判定テスト")
-    .addField("1つ目の答え", song_replace(msg.content.replace(env.PREFIX + "testmulti", "")))
-    .addField("2つ目の答え", song_replace2(msg.content.replace(env.PREFIX + "testmulti", "")))
-    .addField("3つ目の答え(実験的)", song_replace3(msg.content.replace(env.PREFIX + "testmulti", "")));
+    .addField("1つ目の答え", "`" + song_replace(msg.content.replace(env.PREFIX + "testmulti ", "")) + "`")
+    .addField("2つ目の答え", "`" + song_replace2(msg.content.replace(env.PREFIX + "testmulti ", "")) + "`")
+    .addField("3つ目の答え", "`" + song_replace3(msg.content.replace(env.PREFIX + "testmulti ", "")) + "`")
+    .setFooter("元テキスト: `" + msg.content + "` / コマンド抜き: `" + msg.content.replace(env.PREFIX + "testmulti ", "") +"`");
   msg.channel.send(embed);
 };
 
 function song_replace(name) {
-    let songname = name;
-    let a = songname.replace("「", "").replace(/」[^]*/gm, "");
+    let a = name.replace("「", "").replace(/」[^]*/gm, "");
+    a = a.replace(/ -.*/gm, "");
+    a = a.replace(/ ～.*/gm, "");
     a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
     a = a.replace(/【.*?】/g, "");
 ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
@@ -192,9 +209,13 @@ function song_replace(name) {
 }
 
 function song_replace2(name) {
-    let songname = name;
-    let a = songname.replace("「", "").replace(/」[^]*/gm, "");
-    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+    let a = name;
+    a = a.replace("「", "").replace(/」[^]*/gm, "");
+    if (/.*『.*』.*-.*／.*/gm.test(a)) {
+      a = a.replace(/／.*/g, "").replace(/ -.*/, "").replace(/.*』/, "");
+    } else {
+      a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+    }
     a = a.replace(/【.*?】/g, "");
     a = a.replace(/.*:: /gm, "");
 ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
@@ -211,14 +232,20 @@ function song_replace2(name) {
     } else {
       a = a.replace(/.* -/g, "");
     }
-    let result = a.replace(/（.*/gm, "");
+    a = a.replace(/[^a-zA-Z0-9!?\s]*/gm, "");
+    a = a.replace(/（.*/gm, "");
+    let result = a;
     return result;
 }
 
-function song_replace3(name) { // almost same at another_song_replace(name)
+function song_replace3(name) {
   let songname = name;
   let a = songname.replace("「", "").replace(/」[^]*/gm, "");
-  a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+  if (/.*『.*』.*-.*／.*/gm.test(a)) {
+    a = a.replace(/／.*/g, "").replace(/[^]*(\\.|[^- ])*- /gm, "");
+  } else {
+    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
+  }
   a = a.replace(/【.*?】/g, "");
 ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
   a = a.replace(/[^]*(\\.|[^／])／/gm, "");
@@ -234,8 +261,14 @@ function song_replace3(name) { // almost same at another_song_replace(name)
   } else {
     a = a.replace(/.* -/g, "");
   }
+  a = a.replace(/-.*/, "");
+  a = a.replace(/　/gm, "");
+  a = a.replace(/([!]*)/gm, "");
+  a = a.replace(/[^a-zA-Z0-9\s]*/gm, "");
+  a = a.replace(/ feat.*/gm, "");
   let result = a.replace(/（.*/gm, "");
   return result;
 }
 
 client.login(env.TOKEN);
+
