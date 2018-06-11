@@ -83,12 +83,12 @@ global.connect = (msg, split) => {
       } else if (!msg.member.voiceChannel.joinable) {
         msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} に参加する権限が与えられていないため、参加することができませんでした。`);
       } else {
-        msg.channel.send(`予期せぬエラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
+        msg.channel.send(`エラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
         console.error(`ボットの参加時にエラーが発生しました：${error}`);
       }
     });
   } else {
-    msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
+    msg.channel.send(`ボイスチャンネルに参加してからもう一度お試しください。`);
   }
 };
 
@@ -105,7 +105,7 @@ global.disconnect = (msg, split) => {
     msg.member.voiceChannel.leave();
     msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
   } else {
-    msg.channel.send(`ボットが退出するボイスチャンネルに参加してからもう一度お試しください。`);
+    msg.channel.send(`ボイスチャンネルに参加してからもう一度お試しください。`);
   }
 };
 
@@ -217,7 +217,7 @@ function song_replace(name) {
     a = a.replace(/[^]*(\\.|[^／])／/gm, "");
     a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
 //    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/"/, "").replace(/"/, "");
+    a = a.replace(/"/gm, "")
 //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, "");
     a = a.replace(/\/.*/, "");
@@ -245,7 +245,7 @@ function song_replace2(name) {
     a = a.replace(/[^]*(\\.|[^／])／/gm, "");
     a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
 //    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/"/, "").replace(/"/, "");
+    a = a.replace(/"/gm, "");
 //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, "");
     a = a.replace(/.*\//, "");
@@ -274,7 +274,7 @@ function song_replace3(name) {
   a = a.replace(/[^]*(\\.|[^／])／/gm, "");
   a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
 //    a = a.replace(/\(.*/gm, "");
-  a = a.replace(/"/, "").replace(/"/, "");
+  a = a.replace(/".*?"/gm, "");
 //    a = a.replace(/-[^]*/gm, "");
   a = a.replace(/\[[^]*/gm, "");
   a = a.replace(/.*\//, "");
