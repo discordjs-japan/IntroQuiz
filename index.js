@@ -95,7 +95,6 @@ global.connect = (msg, split) => {
 };
 
 global.disconnect = (msg, split) => {
-  if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
     client.clearTimeout(timeout);
     channel = null;
     if (status) {
@@ -104,11 +103,8 @@ global.disconnect = (msg, split) => {
       dispatcher.end();
       connection.disconnect();
     }
-    msg.member.voiceChannel.leave();
-    msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
-  } else {
-    msg.channel.send(`ボイスチャンネルに参加してからもう一度お試しください。`);
-  }
+    msg.guild.me.voiceChannel.leave();
+    msg.channel.send(`ボイスチャンネル「${msg.guild.me.voiceChannel.name}」を退出しました。`);
 };
 
 global.quiz = async (msg, split) => {
