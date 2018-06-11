@@ -7,4 +7,4 @@ before_install:
   - npm i dotenv-safe
   - npm i ytdl-core
   - npm i youtube-playlist-info
-sudo: required
+script: echo "script is disabled"
