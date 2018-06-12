@@ -68,9 +68,9 @@ console.error(err);
 });
   }
   settings = require(guildSettings);
-  if (msg.content.startsWith(env.PREFIX)) {
+  if (msg.content.startsWith(settings.PREFIX)) {
     console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
-    const split = msg.content.replace(env.PREFIX, ``).split(` `),
+    const split = msg.content.replace(settings.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
@@ -158,7 +158,21 @@ global.quiz = async (msg, split) => {
     if (status) return;
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(messages.quiz.please_playlistid);
+      split[2] = split[2].replace(/_/gm, `M`);
+      console.log(`Argument2: ${split[2]}`);
       msg.channel.send(messages.quiz.loading);
+      if (split[2].length == 0) {
+        return msg.channel.send(`読み込めません。バグの可能性が高いです。引数[2]: ${split[2]}`);
+      }
+      if (split[2].length < 34) {
+        return msg.channel.send(messages.quiz.not_enough_count);
+      }
+      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
+      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
+        split[2] = split[2].replace(`&list=`, ``);
+        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
+        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
+      }
       const list = await playlist(split[2]).
         catch((error) => {
           if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
@@ -172,16 +186,6 @@ global.quiz = async (msg, split) => {
           }
         });
       if (!Array.isArray(list)) return msg.channel.send(list);
-      if(split[2].length < 34) {
- return msg.channel.send(messages.quiz.not_enough_count);
-}
-      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
-      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
-        split[2] = split[2].replace(`&list=`, ``);
-        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
-      }
-
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
@@ -235,24 +239,24 @@ function nextquiz(msg, number = 0) {
 }
 
 global.test = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``);
+  msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(settings.PREFIX + `test `, ``)) + `\``);
 };
 
 global.test2 = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``);
+  msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(settings.PREFIX + `test2 `, ``)) + `\``);
 };
 
 global.test3 = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``);
+  msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(settings.PREFIX + `test3 `, ``)) + `\``);
 };
 
 global.testmulti = (msg, split) => {
   const embed = new discord.RichEmbed().
     setTitle(`判定テスト`).
-    addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
-    addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
-    addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
-    setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``);
+    addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``).
+    setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(settings.PREFIX + `testmulti `, ``) + `\``);
   msg.channel.send(embed);
 };
 
