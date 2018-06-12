@@ -16,6 +16,12 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
+  playlist = require(`./playlist`),
+  {
+    songReplace,
+    songReplace2,
+    songReplace3
+  } = require(`./song_replace`),
   ypi = require(`youtube-playlist-info`),
   process = require(`process`),
   fs = require(`fs`),
@@ -43,6 +49,9 @@ client.on(`ready`, () => {
 client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
+  if (msg.content.startsWith(env.PREFIX)) {
+    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
+    const split = msg.content.replace(env.PREFIX, ``).split(` `),
   if (!fs.existsSync("./data/servers")) {
     console.log(messages.console.creating_data_folder, "(設定)");
     mkdirp("./data/servers");
@@ -67,9 +76,9 @@ client.on(`message`, async (msg) => {
       msg.channel.send(messages.no_command);
     }
   } else if (status) {
-    let a = song_replace(songinfo[1]);
-    let b = song_replace2(songinfo[1]); // pickup another answer
-    let c = song_replace3(songinfo[1]); // pickup another another answer (experimental)
+    const a = songReplace(songinfo[1]),
+       b = songReplace2(songinfo[1]), // pickup another answer
+       c = songReplace3(songinfo[1]); // pickup another another answer (experimental)
     if (~msg.content.indexOf(a) || ~msg.content.indexOf(b) || ~msg.content.indexOf(c)) {
       correct = true;
       msg.channel.send(format(messages.correct, songinfo[1], songinfo[0]));
@@ -82,17 +91,16 @@ global.ping = (msg, split) => {
 };
 
 global.help = (msg, split) => {
-  let embed = new discord.RichEmbed()
-    .setTitle(format(messages.help.commands, settings.PREFIX))
-    .setTimestamp()
-    .setFooter(messages.help.helpcommand)
-    .addField("help", "ヘルプを表示")
-    .addField("ping", "ボットのPingを確認")
-    .addField("connect", "ボイスチャンネルに接続")
-    .addField("disconnect", "ボイスチャットから切断")
-    .addField("quiz start <YouTubeプレイリスト>", "イントロクイズを開始")
-    .addField("quiz <end|stop>", "イントロクイズを終了")
-    .addField("setprefix <プレフィックス>", "プレフィックスを設定");
+  const embed = new discord.RichEmbed().
+    setTitle(`コマンド一覧`).
+    setTimestamp().
+    setFooter(`ヘルプコマンド(help)`).
+    addField(`help`, `ヘルプを表示`).
+    addField(`ping`, `ボットのPingを確認`).
+    addField(`connect`, `ボイスチャンネルに接続`).
+    addField(`disconnect`, `ボイスチャットから切断`).
+    addField(`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`).
+    addField(`quiz <end|stop>`, `イントロクイズを終了`);
   msg.channel.send(embed);
 };
 
@@ -148,14 +156,7 @@ global.quiz = async (msg, split) => {
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(messages.quiz.please_playlistid);
       msg.channel.send(messages.quiz.loading);
-      if(split[2].length < 34) { return msg.channel.send(messages.quiz.not_enough_count); }
-      split[2] = split[2].replace("https://www.youtube.com/playlist?list=", "");
-      if (~split[2].indexOf("https://www.youtube.com/watch?v=") && ~split[2].indexOf("&list=")) {
-        split[2] = split[2].replace("&list=", "");
-        split[2] = split[2].replace("https://www.youtube.com/watch?v=", "").slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, "");
-      }
-      const list = await ypi(env.APIKEY, split[2]).
+      const list = await playlist(split[2]).
         catch((error) => {
 	  if (error == "Error: The request is not properly authorized to retrieve the specified playlist.") {
 	    return msg.channel.send(messages.quiz.error.unavailable);
@@ -167,6 +168,15 @@ global.quiz = async (msg, split) => {
 	    return msg.channel.send(format(messages.quiz.error.unknown_error, error));
 	  }
 	});
+      if (!Array.isArray(list)) return msg.channel.send(list)
+      if(split[2].length < 34) { return msg.channel.send(messages.quiz.not_enough_count); }
+      split[2] = split[2].replace("https://www.youtube.com/playlist?list=", "");
+      if (~split[2].indexOf("https://www.youtube.com/watch?v=") && ~split[2].indexOf("&list=")) {
+        split[2] = split[2].replace("&list=", "");
+        split[2] = split[2].replace("https://www.youtube.com/watch?v=", "").slice(11);
+        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, "");
+      }
+
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
@@ -220,24 +230,24 @@ function nextquiz(msg, number = 0) {
 }
 
 global.test = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace(msg.content.replace(settings.PREFIX + "test ", "")) + "`");
+  msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``);
 };
 
 global.test2 = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace2(msg.content.replace(settings.PREFIX + "test2 ", "")) + "`");
+  msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``);
 };
 
 global.test3 = (msg, split) => {
-  msg.channel.send("Extracted name: `" + song_replace3(msg.content.replace(settings.PREFIX + "test3 ", "")) + "`");
+  msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``);
 };
 
 global.testmulti = (msg, split) => {
-  let embed = new discord.RichEmbed()
-    .setTitle("判定テスト")
-    .addField("1つ目の答え", "`" + song_replace(msg.content.replace(settings.PREFIX + "testmulti ", "")) + "`")
-    .addField("2つ目の答え", "`" + song_replace2(msg.content.replace(settings.PREFIX + "testmulti ", "")) + "`")
-    .addField("3つ目の答え", "`" + song_replace3(msg.content.replace(settings.PREFIX + "testmulti ", "")) + "`")
-    .setFooter("元テキスト: `" + msg.content + "` / コマンド抜き: `" + msg.content.replace(settings.PREFIX + "testmulti ", "") +"`");
+  const embed = new discord.RichEmbed().
+    setTitle(`判定テスト`).
+    addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
+    setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``);
   msg.channel.send(embed);
 };
 
@@ -252,92 +262,6 @@ global.setprefix = (msg, split) => {
   }
 };
 
-function song_replace(name) {
-    let a = name.replace("「", "").replace(/」[^]*/gm, "");
-    a = a.replace(/ -.*/gm, "");
-    a = a.replace(/ ～.*/gm, "");
-    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
-    a = a.replace(/【.*?】/g, "");
-////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
-    a = a.replace(/[^]*(\\.|[^／])／/gm, "");
-    a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
-//    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/"/gm, "")
-//    a = a.replace(/-[^]*/gm, "");
-    a = a.replace(/\[[^]*/gm, "");
-    a = a.replace(/\/.*/, "");
-    if (/.*?-([^-].*?)-.*/gm.test(a)) {
-      let result = a.replace( /.*?- /, "").replace(/ -.*/, "");
-      return result;
-    } else {
-      a = a.replace(/.* -/g, "");
-    }
-    let result = a.replace(/（.*/gm, "");
-    return result;
-}
-
-function song_replace2(name) {
-    let a = name;
-    a = a.replace("「", "").replace(/」[^]*/gm, "");
-    if (/.*『.*』.*-.*／.*/gm.test(a)) {
-      a = a.replace(/／.*/g, "").replace(/ -.*/, "").replace(/.*』/, "");
-    } else {
-      a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
-    }
-    a = a.replace(/【.*?】/g, "");
-    a = a.replace(/.*:: /gm, "");
-////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
-    a = a.replace(/[^]*(\\.|[^／])／/gm, "");
-    a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
-//    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/"/gm, "");
-//    a = a.replace(/-[^]*/gm, "");
-    a = a.replace(/\[[^]*/gm, "");
-    a = a.replace(/.*\//, "");
-    if (/.*?-([^-].*?)-.*/gm.test(a)) {
-      let result = a.replace( / -.*/, "");
-      return result;
-    } else {
-      a = a.replace(/.* -/g, "");
-    }
-    a = a.replace(/[^a-zA-Z0-9!?\s]*/gm, "");
-    a = a.replace(/（.*/gm, "");
-    let result = a;
-    return result;
-}
-
-function song_replace3(name) {
-  let songname = name;
-  let a = songname.replace("「", "").replace(/」[^]*/gm, "");
-  if (/.*『.*』.*-.*／.*/gm.test(a)) {
-    a = a.replace(/／.*/g, "").replace(/[^]*(\\.|[^- ])*- /gm, "");
-  } else {
-    a = a.replace(/[^]*(\\.|[^『])『/gm, "").replace(/』[^]*/gm, "");
-  }
-  a = a.replace(/【.*?】/g, "");
-////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
-  a = a.replace(/[^]*(\\.|[^／])／/gm, "");
-  a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
-//    a = a.replace(/\(.*/gm, "");
-  a = a.replace(/".*?"/gm, "");
-//    a = a.replace(/-[^]*/gm, "");
-  a = a.replace(/\[[^]*/gm, "");
-  a = a.replace(/.*\//, "");
-  if (/.*?-([^-].*?)-.*/gm.test(a)) {
-    let result = a.replace( /.*- /, "");
-    return result;
-  } else {
-    a = a.replace(/.* -/g, "");
-  }
-  a = a.replace(/-.*/, "");
-  a = a.replace(/　/gm, "");
-  a = a.replace(/([!]*)/gm, "");
-  a = a.replace(/[^a-zA-Z0-9\s]*/gm, "");
-  a = a.replace(/ feat.*/gm, "");
-  let result = a.replace(/（.*/gm, "");
-  return result;
-}
-
 function writeSettings(settingsFile, wsettings, channel) {
   fs.writeFileSync(settingsFile, JSON.stringify(wsettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
   channel.send(messages.saved_settings);
@@ -350,4 +274,3 @@ process.on('SIGINT', function() {
 });
 
 client.login(env.TOKEN);
-
