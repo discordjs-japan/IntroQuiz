@@ -27,11 +27,10 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   fs = require(`fs`),
   mkdirp = require(`node-mkdirp`),
   format = require(`string-format`),
-  messages = require(`./messages.json`);
-
-const defaultSettings = {
-  PREFIX: env.PREFIX,
-};
+  messages = require(`./messages.json`),
+  defaultSettings = {
+    "PREFIX": env.PREFIX
+  };
 
 let status = false,
   correct = false,
@@ -40,6 +39,8 @@ let status = false,
   dispatcher,
   timeout,
   channel,
+  guildSettings,
+  settings,
   songs;
 
 client.on(`ready`, () => {
@@ -49,25 +50,27 @@ client.on(`ready`, () => {
 client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
-  if (msg.content.startsWith(env.PREFIX)) {
-    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
-    const split = msg.content.replace(env.PREFIX, ``).split(` `),
-  if (!fs.existsSync("./data/servers")) {
-    console.log(messages.console.creating_data_folder, "(設定)");
-    mkdirp("./data/servers");
+  if (!fs.existsSync(`./data/servers`)) {
+    console.log(messages.console.creating_data_folder, `(設定)`);
+    mkdirp(`./data/servers`);
   }
-  if (!fs.existsSync("./data/votes")) {
-    console.log(messages.console.creating_data_folder, "(投票)");
-    mkdirp("./data/votes");
+  if (!fs.existsSync(`./data/votes`)) {
+    console.log(messages.console.creating_data_folder, `(投票)`);
+    mkdirp(`./data/votes`);
   }
   guildSettings = `./data/servers/${msg.guild.id}.json`;
   if (!fs.existsSync(guildSettings)) {
     console.log(messages.console.creating_settingsfile, guildSettings);
-    fs.writeFileSync(guildSettings, JSON.stringify(defaultSettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
+    fs.writeFileSync(guildSettings, JSON.stringify(defaultSettings, null, 4), `utf8`, (err) => {
+ if(err) {
+console.error(err);
+}
+});
   }
   settings = require(guildSettings);
-  if (msg.content.startsWith(settings.PREFIX)) {
-    const split = msg.content.replace(settings.PREFIX, ``).split(` `),
+  if (msg.content.startsWith(env.PREFIX)) {
+    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
+    const split = msg.content.replace(env.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
@@ -76,10 +79,10 @@ client.on(`message`, async (msg) => {
       msg.channel.send(messages.no_command);
     }
   } else if (status) {
-    const a = songReplace(songinfo[1]),
-       b = songReplace2(songinfo[1]), // pickup another answer
-       c = songReplace3(songinfo[1]); // pickup another another answer (experimental)
-    if (~msg.content.indexOf(a) || ~msg.content.indexOf(b) || ~msg.content.indexOf(c)) {
+    const answera = songReplace(songinfo[1]),
+       answerb = songReplace2(songinfo[1]), // pickup another answer
+       answerc = songReplace3(songinfo[1]); // pickup another another answer (experimental)
+    if (~msg.content.indexOf(answera) || ~msg.content.indexOf(answerb) || ~msg.content.indexOf(answerc)) {
       correct = true;
       msg.channel.send(format(messages.correct, songinfo[1], songinfo[0]));
       dispatcher.end();
@@ -133,7 +136,7 @@ global.vote = (msg, split) => {
   } else {
     msg.channel.send(messages.wrong_args);
   }*/
-  msg.channel.send(":construction: :bow: :construction: 未完成です。");
+  msg.channel.send(`:construction: :bow: :construction: 未完成です。`);
 };
 
 global.disconnect = (msg, split) => {
@@ -158,23 +161,25 @@ global.quiz = async (msg, split) => {
       msg.channel.send(messages.quiz.loading);
       const list = await playlist(split[2]).
         catch((error) => {
-	  if (error == "Error: The request is not properly authorized to retrieve the specified playlist.") {
-	    return msg.channel.send(messages.quiz.error.unavailable);
-	  } else if (error == "Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.") {
-	    return msg.channel.send(messages.quiz.error.notfound);
-	  } else if (error == "Error: Bad Request") {
-	    return msg.channel.send(messages.quiz.error.badrequest);
-	  } else {
-	    return msg.channel.send(format(messages.quiz.error.unknown_error, error));
-	  }
-	});
-      if (!Array.isArray(list)) return msg.channel.send(list)
-      if(split[2].length < 34) { return msg.channel.send(messages.quiz.not_enough_count); }
-      split[2] = split[2].replace("https://www.youtube.com/playlist?list=", "");
-      if (~split[2].indexOf("https://www.youtube.com/watch?v=") && ~split[2].indexOf("&list=")) {
-        split[2] = split[2].replace("&list=", "");
-        split[2] = split[2].replace("https://www.youtube.com/watch?v=", "").slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, "");
+          if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
+            return msg.channel.send(messages.quiz.error.unavailable);
+          } else if (error === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
+            return msg.channel.send(messages.quiz.error.notfound);
+          } else if (error === `Error: Bad Request`) {
+            return msg.channel.send(messages.quiz.error.badrequest);
+          } else {
+            return msg.channel.send(format(messages.quiz.error.unknown_error, error));
+          }
+        });
+      if (!Array.isArray(list)) return msg.channel.send(list);
+      if(split[2].length < 34) {
+ return msg.channel.send(messages.quiz.not_enough_count);
+}
+      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
+      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
+        split[2] = split[2].replace(`&list=`, ``);
+        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
+        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
       }
 
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
@@ -253,8 +258,8 @@ global.testmulti = (msg, split) => {
 
 global.setprefix = (msg, split) => {
   if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
-  let set = settings;
-  if (/\s/gm.test(split[1]) || split[1] == null) {
+  const set = settings;
+  if (/\s/gm.test(split[1]) || split[1] === null) {
     msg.channel.send(messages.cantsave_nospace);
   } else {
     set.PREFIX = split[1];
@@ -263,14 +268,18 @@ global.setprefix = (msg, split) => {
 };
 
 function writeSettings(settingsFile, wsettings, channel) {
-  fs.writeFileSync(settingsFile, JSON.stringify(wsettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
+  fs.writeFileSync(settingsFile, JSON.stringify(wsettings, null, 4), `utf8`, (err) => {
+ if(err) {
+ console.error(err);
+}
+});
   channel.send(messages.saved_settings);
 }
 
-process.on('SIGINT', function() {
-  console.error("SIGINTを検知しました。");
+process.on(`SIGINT`, () => {
+  console.error(`SIGINTを検知しました。`);
   client.destroy();
-  console.error("ボットは安全にシャットダウンしました。");
+  console.error(`ボットは安全にシャットダウンしました。`);
 });
 
 client.login(env.TOKEN);
