@@ -1,17 +1,16 @@
-// |---------------------------------------------|
-// |  ____      _ ____            _ ____  _   _  |
-// | |  _ \    | / ___|          | |  _ \| \ | | |
-// | | | | |_  | \___ \ _____ _  | | |_) |  \| | |
-// | | |_| | |_| |___) |_____| |_| |  __/| |\  | |
-// | |____/ \___/|____/       \___/|_|   |_| \_| |
-// |                                             |
-// |---------------------------------------------|
+// |-----------------------------------------------------------------------------------------------------------|
+// |  ____      _ ____            _ ____  _   _    __     ____            _   _            ____   _   __  __   |
+// | |  _ \    | / ___|          | |  _ \| \ | |  | /    / ___\    /\    | \ | |    /\    |    \ \ \_/ /  \ |  |
+// | | | | |_  | \___ \ _____ _  | | |_) |  \| |  ||    | /       /  \   |  \| |   /  \   | |__/  \   /    ||  |
+// | | |_| | |_| |___) |_____| |_| |  __/| |\  |  ||    | \____  /----\  | |\  |  /----\  | |\ \   | |     ||  |
+// | |____/ \___/|____/       \___/|_|   |_| \_|  |_\    \____/ /      \ |_| \_| /      \ |_| \_\  |_|    /_|  |
+// |                                                                                                           |
+// |-----------------------------------------------------------------------------------------------------------|
 //
 // GitHub Repository: https://github.com/DJS-JPN/IntroQuiz
 //
 // GitLab Repository: https://gitlab.com/DJS-JPN/IntroQuiz
 //
-
 
 const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
@@ -22,7 +21,17 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
     songReplace,
     songReplace2,
     songReplace3
-  } = require(`./song_replace`);
+  } = require(`./song_replace`),
+  ypi = require(`youtube-playlist-info`),
+  process = require(`process`),
+  fs = require(`fs`),
+  mkdirp = require(`node-mkdirp`),
+  format = require(`string-format`),
+  messages = require(`./messages.json`);
+
+const defaultSettings = {
+  PREFIX: env.PREFIX,
+};
 
 let status = false,
   correct = false,
@@ -34,7 +43,7 @@ let status = false,
   songs;
 
 client.on(`ready`, () => {
-  console.log(`ログインが完了しました。`);
+  console.log(messages.console.login_complete);
 });
 
 client.on(`message`, async (msg) => {
@@ -43,12 +52,28 @@ client.on(`message`, async (msg) => {
   if (msg.content.startsWith(env.PREFIX)) {
     console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
     const split = msg.content.replace(env.PREFIX, ``).split(` `),
+  if (!fs.existsSync("./data/servers")) {
+    console.log(messages.console.creating_data_folder, "(設定)");
+    mkdirp("./data/servers");
+  }
+  if (!fs.existsSync("./data/votes")) {
+    console.log(messages.console.creating_data_folder, "(投票)");
+    mkdirp("./data/votes");
+  }
+  guildSettings = `./data/servers/${msg.guild.id}.json`;
+  if (!fs.existsSync(guildSettings)) {
+    console.log(messages.console.creating_settingsfile, guildSettings);
+    fs.writeFileSync(guildSettings, JSON.stringify(defaultSettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
+  }
+  settings = require(guildSettings);
+  if (msg.content.startsWith(settings.PREFIX)) {
+    const split = msg.content.replace(settings.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
       if (command === `nextquiz`) return;
       global[command](msg, split);
     } else {
-      msg.channel.send(`:x: そのようなコマンドはありません。`);
+      msg.channel.send(messages.no_command);
     }
   } else if (status) {
     const a = songReplace(songinfo[1]),
@@ -56,13 +81,13 @@ client.on(`message`, async (msg) => {
        c = songReplace3(songinfo[1]); // pickup another another answer (experimental)
     if (~msg.content.indexOf(a) || ~msg.content.indexOf(b) || ~msg.content.indexOf(c)) {
       correct = true;
-      msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
+      msg.channel.send(format(messages.correct, songinfo[1], songinfo[0]));
       dispatcher.end();
     }
   }
 });
 global.ping = (msg, split) => {
-  msg.channel.send(`ポン！ Ping の確認に成功しました！ボットの Ping は ${Math.floor(client.ping)}ms です！`);
+  msg.channel.send(format(messages.pong, Math.floor(client.ping)));
 };
 
 global.help = (msg, split) => {
@@ -82,20 +107,33 @@ global.help = (msg, split) => {
 global.connect = (msg, split) => {
   if (msg.member.voiceChannel) {
     msg.member.voiceChannel.join().then((connection) =>
-      msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」の参加に成功しました。`)
+      msg.channel.send(format(messages.join_vc.success, msg.member.voiceChannel.name))
     ).catch((error) => {
       if (msg.member.voiceChannel.full) {
-        msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} は満員のため、参加することができませんでした。`);
+        msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
       } else if (!msg.member.voiceChannel.joinable) {
-        msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} に参加する権限が与えられていないため、参加することができませんでした。`);
+        msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
       } else {
-        msg.channel.send(`エラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
-        console.error(`ボットの参加時にエラーが発生しました：${error}`);
+        msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
+        console.error(format(messages.console.join_vc_error, error));
       }
     });
   } else {
-    msg.channel.send(`ボイスチャンネルに参加してからもう一度お試しください。`);
+    msg.channel.send(messages.join_vc.tryagain);
   }
+};
+
+global.vote = (msg, split) => {
+  /*if (split[1] === `create` || split[1] === `start`) {
+
+  } else if (split[1] === `close` || split[1] === `end`) {
+
+  } else if (split[1] === `vote`) {
+
+  } else {
+    msg.channel.send(messages.wrong_args);
+  }*/
+  msg.channel.send(":construction: :bow: :construction: 未完成です。");
 };
 
 global.disconnect = (msg, split) => {
@@ -107,18 +145,38 @@ global.disconnect = (msg, split) => {
       dispatcher.end();
       connection.disconnect();
     }
+    if (!msg.guild.me.voiceChannel) return msg.channel.send(messages.exit_vc_notjoined);
     msg.guild.me.voiceChannel.leave();
-    msg.channel.send(`ボイスチャンネル「${msg.guild.me.voiceChannel.name}」を退出しました。`);
+    msg.channel.send(format(messages.exit_vc, msg.guild.me.voiceChannel.name));
 };
 
 global.quiz = async (msg, split) => {
   if (split[1] === `start`) {
     if (status) return;
     if (msg.member.voiceChannel) {
-      if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
-      msg.channel.send(`再生リスト読み込み中...`);
-      const list = await playlist(split[2])
+      if (!split[2]) return msg.channel.send(messages.quiz.please_playlistid);
+      msg.channel.send(messages.quiz.loading);
+      const list = await playlist(split[2]).
+        catch((error) => {
+	  if (error == "Error: The request is not properly authorized to retrieve the specified playlist.") {
+	    return msg.channel.send(messages.quiz.error.unavailable);
+	  } else if (error == "Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.") {
+	    return msg.channel.send(messages.quiz.error.notfound);
+	  } else if (error == "Error: Bad Request") {
+	    return msg.channel.send(messages.quiz.error.badrequest);
+	  } else {
+	    return msg.channel.send(format(messages.quiz.error.unknown_error, error));
+	  }
+	});
       if (!Array.isArray(list)) return msg.channel.send(list)
+      if(split[2].length < 34) { return msg.channel.send(messages.quiz.not_enough_count); }
+      split[2] = split[2].replace("https://www.youtube.com/playlist?list=", "");
+      if (~split[2].indexOf("https://www.youtube.com/watch?v=") && ~split[2].indexOf("&list=")) {
+        split[2] = split[2].replace("&list=", "");
+        split[2] = split[2].replace("https://www.youtube.com/watch?v=", "").slice(11);
+        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, "");
+      }
+
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
@@ -126,19 +184,18 @@ global.quiz = async (msg, split) => {
         nextquiz(msg);
       }).catch((error) => {
         if (msg.member.voiceChannel.full) {
-          msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} は満員のため、参加することができませんでした。`);
+          msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
         } else if (!msg.member.voiceChannel.joinable) {
-          msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} に参加する権限が与えられていないため、参加することができませんでした。`);
+          msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
         } else {
-          msg.channel.send(`予期せぬエラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
-          console.error(`ボットの参加時にエラーが発生しました：${error}`);
+          msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
+          console.error(format(messages.console.join_vc_error, error));
         }
       });
     } else {
-      msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
+      msg.channel.send(messages.join_vc.tryagain);
     }
-  }
-  if (split[1] === `end` || split[1] === `stop`) {
+  } else if (split[1] === `end` || split[1] === `stop`) {
     if (status) {
       client.clearTimeout(timeout);
       channel = null;
@@ -146,25 +203,27 @@ global.quiz = async (msg, split) => {
       correct = false;
       dispatcher.end();
       connection.disconnect();
-      msg.channel.send(`イントロクイズを終了しました。`);
+      msg.channel.send(messages.quiz.stop);
     } else {
-      msg.channel.send(`イントロクイズが既に終了されているか、まだ開始されていません。`);
+      msg.channel.send(messages.quiz.not_started);
     }
+  } else {
+    msg.channel.send(messages.wrong_args);
   }
 };
 
 function nextquiz(msg, number = 0) {
-  msg.channel.send(`${++number} 問目！五秒後に始まるよ！`);
+  msg.channel.send(format(messages.quiz.nextquiz, ++number));
   correct = false;
   timeout = client.setTimeout(() => {
-    msg.channel.send(`スタート！この曲は何でしょう？音楽の再生が終了するまで誰も答えられなかった場合は、誰にもポイントは入りません。`);
+    msg.channel.send(messages.quiz.start);
     songinfo = songs[Math.floor(Math.random() * songs.length)];
     console.log(songinfo);
     const stream = ytdl(songinfo[0], {"filter": `audioonly`});
     dispatcher = connection.playStream(stream);
     dispatcher.on(`end`, (end) => {
       if (!correct)
-        msg.channel.send(`音楽の再生が終了しました！答えは「${songinfo[1]}」でした！残念...\nYouTube: https://youtu.be/${songinfo[0]}`);
+        msg.channel.send(format(messages.quiz.uncorrect, songinfo[1], songinfo[0]));
       if (status) nextquiz(msg, number);
     });
   }, 5000);
@@ -192,10 +251,26 @@ global.testmulti = (msg, split) => {
   msg.channel.send(embed);
 };
 
-process.on(`SIGINT`, () => {
-  console.error(`SIGINTを検知しました。`);
+global.setprefix = (msg, split) => {
+  if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
+  let set = settings;
+  if (/\s/gm.test(split[1]) || split[1] == null) {
+    msg.channel.send(messages.cantsave_nospace);
+  } else {
+    set.PREFIX = split[1];
+    writeSettings(guildSettings, set, msg.channel);
+  }
+};
+
+function writeSettings(settingsFile, wsettings, channel) {
+  fs.writeFileSync(settingsFile, JSON.stringify(wsettings, null, 4), 'utf8', (err) => {if(err){console.error(err);}});
+  channel.send(messages.saved_settings);
+}
+
+process.on('SIGINT', function() {
+  console.error("SIGINTを検知しました。");
   client.destroy();
-  console.error(`ボットは安全にシャットダウンしました。`);
+  console.error("ボットは安全にシャットダウンしました。");
 });
 
 client.login(env.TOKEN);
