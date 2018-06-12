@@ -17,7 +17,7 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
-  ypi = require(`youtube-playlist-info`),
+  playlist = require(`./playlist`),
   {
     songReplace,
     songReplace2,
@@ -117,27 +117,8 @@ global.quiz = async (msg, split) => {
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
       msg.channel.send(`再生リスト読み込み中...`);
-      if(split[2].length < 34) {
- return msg.channel.send(`:x: 文字数が足りません(34文字以上であることが必須です)。`);
-}
-      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
-      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
-        split[2] = split[2].replace(`&list=`, ``);
-        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
-      }
-      const list = await ypi(env.APIKEY, split[2]).
-        catch((error) => {
-          if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
-            return msg.channel.send(`:x: このプレイリストは非公開です。`);
-          } else if (error === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
-            return msg.channel.send(`:x: このプレイリストは存在しません。`);
-          } else if (error === `Error: Bad Request`) {
-            return msg.channel.send(`:x: Bad Request: YouTube Data APIキーが間違っている可能性があります。`);
-          } else {
-            return msg.channel.send(`再生リスト読み込みエラー：\`${error}\``);
-          }
-        });
+      const list = await playlist(split[2])
+      if (!Array.isArray(list)) return msg.channel.send(list)
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
