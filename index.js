@@ -19,9 +19,9 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   ytdl = require(`ytdl-core`),
   ypi = require(`youtube-playlist-info`),
   {
-    song_replace,
-    song_replace2,
-    song_replace3
+    songReplace,
+    songReplace2,
+    songReplace3
   } = require(`./song_replace`);
 
 let status = false,
@@ -51,9 +51,9 @@ client.on(`message`, async (msg) => {
       msg.channel.send(`:x: そのようなコマンドはありません。`);
     }
   } else if (status) {
-    const a = song_replace(songinfo[1]);
-    const b = song_replace2(songinfo[1]); // pickup another answer
-    const c = song_replace3(songinfo[1]); // pickup another another answer (experimental)
+    const a = songReplace(songinfo[1]),
+       b = songReplace2(songinfo[1]), // pickup another answer
+       c = songReplace3(songinfo[1]); // pickup another another answer (experimental)
     if (~msg.content.indexOf(a) || ~msg.content.indexOf(b) || ~msg.content.indexOf(c)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
@@ -128,16 +128,16 @@ global.quiz = async (msg, split) => {
       }
       const list = await ypi(env.APIKEY, split[2]).
         catch((error) => {
-	  if (error == `Error: The request is not properly authorized to retrieve the specified playlist.`) {
-	    return msg.channel.send(`:x: このプレイリストは非公開です。`);
-	  } else if (error == `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
-	    return msg.channel.send(`:x: このプレイリストは存在しません。`);
-	  } else if (error == `Error: Bad Request`) {
-	    return msg.channel.send(`:x: Bad Request: YouTube Data APIキーが間違っている可能性があります。`);
-	  } else {
-	    return msg.channel.send(`再生リスト読み込みエラー：\`${error}\``);
-	  }
-	});
+          if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
+            return msg.channel.send(`:x: このプレイリストは非公開です。`);
+          } else if (error === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
+            return msg.channel.send(`:x: このプレイリストは存在しません。`);
+          } else if (error === `Error: Bad Request`) {
+            return msg.channel.send(`:x: Bad Request: YouTube Data APIキーが間違っている可能性があります。`);
+          } else {
+            return msg.channel.send(`再生リスト読み込みエラー：\`${error}\``);
+          }
+        });
       songs = list.map((video) => [video.resourceId.videoId, video.title]);
       msg.member.voiceChannel.join().then((con) => {
         connection = con;
@@ -190,23 +190,23 @@ function nextquiz(msg, number = 0) {
 }
 
 global.test = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + song_replace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``);
+  msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``);
 };
 
 global.test2 = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + song_replace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``);
+  msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``);
 };
 
 global.test3 = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + song_replace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``);
+  msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``);
 };
 
 global.testmulti = (msg, split) => {
   const embed = new discord.RichEmbed().
     setTitle(`判定テスト`).
-    addField(`1つ目の答え`, `\`` + song_replace(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
-    addField(`2つ目の答え`, `\`` + song_replace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
-    addField(`3つ目の答え`, `\`` + song_replace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
+    addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``).
     setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``);
   msg.channel.send(embed);
 };

@@ -1,6 +1,6 @@
 module.exports = {
-  song_replace(name) {
-      let a = name.replace(`「`, ``).replace(/」[^]*/gm, ``);
+  songReplace(name) {
+      let a = name.replace(`「`, ``).replace(/」[^]*/gm, ``), result;
       a = a.replace(/ -.*/gm, ``);
       a = a.replace(/ ～.*/gm, ``);
       a = a.replace(/[^]*(\\.|[^『])『/gm, ``).replace(/』[^]*/gm, ``);
@@ -14,16 +14,16 @@ module.exports = {
       a = a.replace(/\[[^]*/gm, ``);
       a = a.replace(/\/.*/, ``);
       if (/.*?-([^-].*?)-.*/gm.test(a)) {
-        const result = a.replace(/.*?- /, ``).replace(/ -.*/, ``);
+        result = a.replace(/.*?- /, ``).replace(/ -.*/, ``);
         return result;
       } else {
         a = a.replace(/.* -/g, ``);
       }
-      const result = a.replace(/（.*/gm, ``);
+      result = a.replace(/（.*/gm, ``);
       return result;
   },
-  song_replace2(name) {
-      let a = name;
+  songReplace2(name) {
+      let a = name, result;
       a = a.replace(`「`, ``).replace(/」[^]*/gm, ``);
       if (/.*『.*』.*-.*／.*/gm.test(a)) {
         a = a.replace(/／.*/g, ``).replace(/ -.*/, ``).replace(/.*』/, ``);
@@ -41,7 +41,7 @@ module.exports = {
       a = a.replace(/\[[^]*/gm, ``);
       a = a.replace(/.*\//, ``);
       if (/.*?-([^-].*?)-.*/gm.test(a)) {
-        const result = a.replace(/ -.*/, ``);
+        result = a.replace(/ -.*/, ``);
         return result;
       } else {
         a = a.replace(/.* -/g, ``);
@@ -49,16 +49,16 @@ module.exports = {
       a = a.replace(/ & .*/gm, ``);
       a = a.replace(/[^a-zA-Z0-9!?\s]*/gm, ``);
       a = a.replace(/（.*/gm, ``);
-      if (a != `Intro`) {
+      if (a !== `Intro`) {
         a = a.replace(`Intro`, ``);
       }
       a = a.replace(/\s*(b|B)y.*/gm, ``);
-      const result = a;
+      result = a;
       return result;
   },
-  song_replace3(name) {
+  songReplace3(name) {
     const songname = name;
-    let a = songname.replace(`「`, ``).replace(/」[^]*/gm, ``);
+    let a = songname.replace(`「`, ``).replace(/」[^]*/gm, ``), result;
     if (/.*『.*』.*-.*／.*/gm.test(a)) {
       a = a.replace(/／.*/g, ``).replace(/[^]*(\\.|[^- ])*- /gm, ``);
     } else {
@@ -74,7 +74,7 @@ module.exports = {
     a = a.replace(/\[[^]*/gm, ``);
   //  a = a.replace(/.*\//, "");
     if (/.*?-([^-].*?)-.*/gm.test(a)) {
-      const result = a.replace(/.*- /, ``);
+      result = a.replace(/.*- /, ``);
       return result;
     } else {
       a = a.replace(/.* -/g, ``);
@@ -85,10 +85,10 @@ module.exports = {
     a = a.replace(/([!]*)/gm, ``);
     a = a.replace(/[^a-zA-Z0-9\s]*/gm, ``);
     a = a.replace(/ feat.*/gm, ``);
-    if (a != `Extended`) {
+    if (a !== `Extended`) {
       a = a.replace(`Extended`, ``);
     }
-    const result = a.replace(/（.*/gm, ``);
+    result = a.replace(/（.*/gm, ``);
     return result;
   }
 };
