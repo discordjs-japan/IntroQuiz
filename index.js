@@ -24,9 +24,9 @@ let status = false,
   songinfo = ``,
   connection = ``,
   dispatcher,
+  timeout,
+  channel,
   songs;
-
-var timeout = null;
 
 client.on(`ready`, () => {
   console.log(`ログインが完了しました。`);
@@ -36,6 +36,7 @@ client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
   if (msg.content.startsWith(env.PREFIX)) {
+    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
     const split = msg.content.replace(env.PREFIX, ``).split(` `),
       command = split[0];
     if (typeof global[command] === `function`) {
@@ -48,7 +49,7 @@ client.on(`message`, async (msg) => {
     let a = song_replace(songinfo[1]);
     let b = song_replace2(songinfo[1]); // pickup another answer
     let c = song_replace3(songinfo[1]); // pickup another another answer (experimental)
-    if (~songinfo[1].indexOf(a) || ~songinfo[1].indexOf(b) || ~songinfo[1].indexOf(c)) {
+    if (~msg.content.indexOf(a) || ~msg.content.indexOf(b) || ~msg.content.indexOf(c)) {
       correct = true;
       msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
       dispatcher.end();
@@ -57,6 +58,20 @@ client.on(`message`, async (msg) => {
 });
 global.ping = (msg, split) => {
   msg.channel.send(`ポン！ Ping の確認に成功しました！ボットの Ping は ${Math.floor(client.ping)}ms です！`);
+};
+
+global.help = (msg, split) => {
+  let embed = new discord.RichEmbed()
+    .setTitle("コマンド一覧")
+    .setTimestamp()
+    .setFooter("ヘルプコマンド(help)")
+    .addField("help", "ヘルプを表示")
+    .addField("ping", "ボットのPingを確認")
+    .addField("connect", "ボイスチャンネルに接続")
+    .addField("disconnect", "ボイスチャットから切断")
+    .addField("quiz start <YouTubeプレイリスト>", "イントロクイズを開始")
+    .addField("quiz <end|stop>", "イントロクイズを終了");
+  msg.channel.send(embed);
 };
 
 global.connect = (msg, split) => {
@@ -69,22 +84,26 @@ global.connect = (msg, split) => {
       } else if (!msg.member.voiceChannel.joinable) {
         msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} に参加する権限が与えられていないため、参加することができませんでした。`);
       } else {
-        msg.channel.send(`予期せぬエラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
+        msg.channel.send(`エラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
         console.error(`ボットの参加時にエラーが発生しました：${error}`);
       }
     });
   } else {
-    msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
+    msg.channel.send(`ボイスチャンネルに参加してからもう一度お試しください。`);
   }
 };
 
 global.disconnect = (msg, split) => {
-  if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
-    msg.member.voiceChannel.leave();
-    msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
-  } else {
-    msg.channel.send(`ボットが退出するボイスチャンネルに参加してからもう一度お試しください。`);
-  }
+    client.clearTimeout(timeout);
+    channel = null;
+    if (status) {
+      status = false;
+      correct = false;
+      dispatcher.end();
+      connection.disconnect();
+    }
+    msg.guild.me.voiceChannel.leave();
+    msg.channel.send(`ボイスチャンネル「${msg.guild.me.voiceChannel.name}」を退出しました。`);
 };
 
 global.quiz = async (msg, split) => {
@@ -134,6 +153,7 @@ global.quiz = async (msg, split) => {
   if (split[1] === `end` || split[1] === `stop`) {
     if (status) {
       client.clearTimeout(timeout);
+      channel = null;
       status = false;
       correct = false;
       dispatcher.end();
@@ -194,7 +214,7 @@ function song_replace(name) {
     a = a.replace(/[^]*(\\.|[^／])／/gm, "");
     a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
 //    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/"/, "").replace(/"/, "");
+    a = a.replace(/"/gm, "")
 //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, "");
     a = a.replace(/\/.*/, "");
@@ -222,7 +242,7 @@ function song_replace2(name) {
     a = a.replace(/[^]*(\\.|[^／])／/gm, "");
     a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
 //    a = a.replace(/\(.*/gm, "");
-    a = a.replace(/"/, "").replace(/"/, "");
+    a = a.replace(/"/gm, "");
 //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, "");
     a = a.replace(/.*\//, "");
@@ -232,8 +252,13 @@ function song_replace2(name) {
     } else {
       a = a.replace(/.* -/g, "");
     }
+    a = a.replace(/ & .*/gm, "");
     a = a.replace(/[^a-zA-Z0-9!?\s]*/gm, "");
     a = a.replace(/（.*/gm, "");
+    if (a != "Intro") {
+      a = a.replace("Intro", "");
+    }
+    a = a.replace(/\s*(b|B)y.*/gm, "");
     let result = a;
     return result;
 }
@@ -251,24 +276,34 @@ function song_replace3(name) {
   a = a.replace(/[^]*(\\.|[^／])／/gm, "");
   a = a.replace(/[^]*(\\.|[^「])「/gm, "").replace(/」[^]*/gm, "");
 //    a = a.replace(/\(.*/gm, "");
-  a = a.replace(/"/, "").replace(/"/, "");
+  a = a.replace(/".*?"/gm, "");
 //    a = a.replace(/-[^]*/gm, "");
   a = a.replace(/\[[^]*/gm, "");
-  a = a.replace(/.*\//, "");
+//  a = a.replace(/.*\//, "");
   if (/.*?-([^-].*?)-.*/gm.test(a)) {
     let result = a.replace( /.*- /, "");
     return result;
   } else {
     a = a.replace(/.* -/g, "");
   }
+  a = a.replace(/.* & /gm, "");
   a = a.replace(/-.*/, "");
   a = a.replace(/　/gm, "");
   a = a.replace(/([!]*)/gm, "");
   a = a.replace(/[^a-zA-Z0-9\s]*/gm, "");
   a = a.replace(/ feat.*/gm, "");
+  if (a != "Extended") {
+    a = a.replace("Extended", "");
+  }
   let result = a.replace(/（.*/gm, "");
   return result;
 }
+
+process.on('SIGINT', function() {
+  console.error("SIGINTを検知しました。");
+  client.destroy();
+  console.error("ボットは安全にシャットダウンしました。");
+});
 
 client.login(env.TOKEN);
 
