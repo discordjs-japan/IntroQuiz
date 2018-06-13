@@ -17,6 +17,7 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
   playlist = require(`./playlist`),
+  StringBuffer = require(`node-stringbuilder`),
   {
     songReplace,
     songReplace2,
@@ -54,18 +55,18 @@ client.on(`message`, async (msg) => {
     console.log(messages.console.creating_data_folder, `(設定)`);
     mkdirp(`./data/servers`);
   }
-  if (!fs.existsSync(`./data/votes`)) {
+  if (!fs.existsSync(`./data/votes/${msg.guild.id}`)) {
     console.log(messages.console.creating_data_folder, `(投票)`);
-    mkdirp(`./data/votes`);
+    mkdirp(`./data/votes/${msg.guild.id}`);
   }
   guildSettings = `./data/servers/${msg.guild.id}.json`;
   if (!fs.existsSync(guildSettings)) {
     console.log(messages.console.creating_settingsfile, guildSettings);
     fs.writeFileSync(guildSettings, JSON.stringify(defaultSettings, null, 4), `utf8`, (err) => {
- if(err) {
-console.error(err);
-}
-});
+      if(err) {
+        console.error(err);
+      }
+    });
   }
   settings = require(guildSettings);
   if (msg.content.startsWith(settings.PREFIX)) {
@@ -127,16 +128,158 @@ global.connect = (msg, split) => {
 };
 
 global.vote = (msg, split) => {
-  /*if (split[1] === `create` || split[1] === `start`) {
-
+  if (split[1] === `create` || split[1] === `start`) {
+    if (!/\|/gm.test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
+    if (split[3].split("|").length > 10) return msg.channel.send(format(messages.votes.too_many_args, split[3].split("|").length - 1));
+    let voteId = Math.random().toString(36).substr(2, 5);
+    const guildId = msg.guild.id;
+    while (true) {
+      if (fs.existsSync(`./data/votes/${guildId}/${voteId}.json`)) {
+        voteId = Math.random().toString(36).substr(2, 5);
+        continue;
+      } else {
+        break;
+      }
+    }
+    const args = split[3].split("|");
+    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+    const voteData = {
+      "title": `${split[2]}`,
+      "data1": `${args[0]}`,
+      "data2": `${args[1]}`,
+      "data3": `${args[2]}`,
+      "data4": `${args[3]}`,
+      "data5": `${args[4]}`,
+      "data6": `${args[5]}`,
+      "data7": `${args[6]}`,
+      "data8": `${args[7]}`,
+      "data9": `${args[8]}`,
+      "data10": `${args[9]}`,
+      "closed": false,
+      "votes1": 0,
+      "votes2": 0,
+      "votes3": 0,
+      "votes4": 0,
+      "votes5": 0,
+      "votes6": 0,
+      "votes7": 0,
+      "votes8": 0,
+      "votes9": 0,
+      "votes10": 0,
+      "creator": `${msg.author.id}`,
+    };
+    fs.writeFileSync(voteFile, JSON.stringify(voteData, null, 4), `utf8`, (err) => {console.error(err);});
+    msg.channel.send(`\`${voteId}\`を作成しました。\n投票には、\`${settings.PREFIX}vote vote <ID> <数値>\`を入力してください。`);
+    const voteEmbed = new discord.RichEmbed().
+      setTitle(`投票`).
+      addField(vote.data1, vote.votes1).
+      addField(vote.data2, vote.votes2).
+      addField(vote.data3, vote.votes3).
+      addField(vote.data4, vote.votes4).
+      addField(vote.data5, vote.votes5).
+      addField(vote.data6, vote.votes6).
+      addField(vote.data7, vote.votes7).
+      addField(vote.data8, vote.votes8).
+      addField(vote.data9, vote.votes9).
+      addField(vote.data10, vote.votes10).
+      addField(`作成者`, vote.creator).
+      setFooter(`閉じられているか: ${vote.closed}`);
+    msg.channel.send(voteEmbed);
   } else if (split[1] === `close` || split[1] === `end`) {
-
+    if (!split[2]) return msg.channel.send(messages.wrong_args);
+    const voteId = split[2];
+    const guildId = msg.guild.id;
+    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+    if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
+    let vote = require(voteFile);
+    if (vote.creator === msg.author.id) {
+      vote.closed = true;
+      writeSettings(voteFile, vote, msg.channel);
+      vote = require(voteFile);
+      msg.channel.send(messages.votes.close);
+      const voteEmbed = new discord.RichEmbed().
+        setTitle(`投票`).
+        addField(vote.data1, vote.votes1).
+        addField(vote.data2, vote.votes2).
+        addField(vote.data3, vote.votes3).
+        addField(vote.data4, vote.votes4).
+        addField(vote.data5, vote.votes5).
+        addField(vote.data6, vote.votes6).
+        addField(vote.data7, vote.votes7).
+        addField(vote.data8, vote.votes8).
+        addField(vote.data9, vote.votes9).
+        addField(vote.data10, vote.votes10).
+        addField(`作成者`, vote.creator).
+        setFooter(`閉じられているか: ${vote.closed}`);
+      msg.channel.send(voteEmbed);
+    } else {
+      msg.channel.send(messages.no_permission);
+    }
   } else if (split[1] === `vote`) {
-
+    if (!split[3]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);
+    const voteId = split[2];
+    const guildId = msg.guild.id;
+    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+    if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
+    let vote = require(voteFile);
+    if (vote[`closed`] == true) return msg.channel.send(messages.votes.closed);
+    vote[`votes${split[3]}`] = ++vote[`votes${split[3]}`];
+    writeSettings(voteFile, vote, msg.channel);
+    vote = require(voteFile);
+    msg.channel.send(messages.votes.voted);
+    const voteEmbed = new discord.RichEmbed().
+      setTitle(`投票`).
+      addField(vote.data1, vote.votes1).
+      addField(vote.data2, vote.votes2).
+      addField(vote.data3, vote.votes3).
+      addField(vote.data4, vote.votes4).
+      addField(vote.data5, vote.votes5).
+      addField(vote.data6, vote.votes6).
+      addField(vote.data7, vote.votes7).
+      addField(vote.data8, vote.votes8).
+      addField(vote.data9, vote.votes9).
+      addField(vote.data10, vote.votes10).
+      addField(`作成者`, vote.creator).
+      setFooter(`閉じられているか: ${vote.closed}`);
+    msg.channel.send(voteEmbed);
+  } else if (split[1] === `list`) {
+    let embed = new discord.RichEmbed().
+      setTitle(`投票ID一覧`).
+      setTimestamp();
+    let sb = new StringBuffer(``);
+    const items = fs.readdirSync(`./data/votes/${msg.guild.id}/`);
+    for (var i=0; i<items.length; i++) {
+      sb.append(`${items[i].replace(`.json`, ``)}\n`);
+    }
+    sb.append(`Folder: ./data/votes/${msg.guild.id}/`);
+    embed.setDescription(sb.toString());
+    msg.channel.send(embed);
+  } else if (split[1] === `info`) {
+    if (!split[2]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);
+    const voteId = split[2];
+    const guildId = msg.guild.id;
+    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+    if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
+    let vote = require(voteFile);
+    const voteEmbed = new discord.RichEmbed().
+      setTimestamp().
+      setTitle(`投票`).
+      addField(vote.data1, vote.votes1).
+      addField(vote.data2, vote.votes2).
+      addField(vote.data3, vote.votes3).
+      addField(vote.data4, vote.votes4).
+      addField(vote.data5, vote.votes5).
+      addField(vote.data6, vote.votes6).
+      addField(vote.data7, vote.votes7).
+      addField(vote.data8, vote.votes8).
+      addField(vote.data9, vote.votes9).
+      addField(vote.data10, vote.votes10).
+      addField(`作成者`, client.users.get(vote.creator).toString()).
+      setFooter(`閉じられているか: ${vote.closed} ・ 項目がundefinedになってるのはデータがありません。これには投票しないでください。`);
+    msg.channel.send(voteEmbed);
   } else {
     msg.channel.send(messages.wrong_args);
-  }*/
-  msg.channel.send(`:construction: :bow: :construction: 未完成です。`);
+  }
 };
 
 global.disconnect = (msg, split) => {
@@ -282,8 +425,8 @@ function writeSettings(settingsFile, wsettings, channel) {
 
 process.on(`SIGINT`, () => {
   console.error(`SIGINTを検知しました。`);
+  console.error(`シャットダウン中...`);
   client.destroy();
-  console.error(`ボットは安全にシャットダウンしました。`);
 });
 
 client.login(env.TOKEN);
