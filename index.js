@@ -104,7 +104,13 @@ global.help = (msg, split) => {
     addField(`connect`, `ボイスチャンネルに接続`).
     addField(`disconnect`, `ボイスチャットから切断`).
     addField(`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`).
-    addField(`quiz <end|stop>`, `イントロクイズを終了`);
+    addField(`quiz <end|stop>`, `イントロクイズを終了`).
+    addField(`vote <create|start> <名前> 回答1|回答2|回答3|...|回答10`, `投票を作成します`).
+    addField(`vote vote <投票ID> <投票する番号(1-10)>`, `投票します`).
+    addField(`vote <close|end> <投票ID>`, `投票を閉じます。**投票を作成した人だけが実行可能です**`).
+    addField(`vote list`, `投票IDの一覧を表示します`).
+    addField(`vote info`, `指定された投票IDの状況を表示します`).
+    addField(`setprefix <設定したいプレフィックス>`, `プレフィックスを設定します。\n**管理者**権限を持っている人だけ実行可能です。`);
   msg.channel.send(embed);
 };
 
@@ -129,7 +135,7 @@ global.connect = (msg, split) => {
 
 global.vote = (msg, split) => {
   if (split[1] === `create` || split[1] === `start`) {
-    if (!(/\|/gm).test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
+    if (!(/.*?\|.*?/gm).test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
     if (split[3].split(`|`).length > 10) return msg.channel.send(format(messages.votes.too_many_args, split[3].split(`|`).length - 1));
     let voteId = Math.random().toString(36).substr(2, 5);
     const guildId = msg.guild.id;
@@ -176,16 +182,32 @@ global.vote = (msg, split) => {
     const voteEmbed = new discord.RichEmbed().
       setTitle(`投票`).
       addField(vote.data1, vote.votes1).
-      addField(vote.data2, vote.votes2).
-      addField(vote.data3, vote.votes3).
-      addField(vote.data4, vote.votes4).
-      addField(vote.data5, vote.votes5).
-      addField(vote.data6, vote.votes6).
-      addField(vote.data7, vote.votes7).
-      addField(vote.data8, vote.votes8).
-      addField(vote.data9, vote.votes9).
-      addField(vote.data10, vote.votes10).
-      addField(`作成者`, vote.creator).
+      addField(vote.data2, vote.votes2);
+      if (vote.data3.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data3, vote.votes3);
+      }
+      if (vote.data4.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data4, vote.votes4);
+      }
+      if (vote.data5.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data5, vote.votes5);
+      }
+      if (vote.data6.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data6, vote.votes6);
+      }
+      if (vote.data7.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data7, vote.votes7);
+      }
+      if (vote.data8.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data8, vote.votes8);
+      }
+      if (vote.data9.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data9, vote.votes9);
+      }
+      if (vote.data10.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data10, vote.votes10);
+      }
+      voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString()).
       setFooter(`閉じられているか: ${vote.closed}`);
     msg.channel.send(voteEmbed);
   } else if (split[1] === `close` || split[1] === `end`) {
@@ -203,16 +225,32 @@ global.vote = (msg, split) => {
       const voteEmbed = new discord.RichEmbed().
         setTitle(`投票`).
         addField(vote.data1, vote.votes1).
-        addField(vote.data2, vote.votes2).
-        addField(vote.data3, vote.votes3).
-        addField(vote.data4, vote.votes4).
-        addField(vote.data5, vote.votes5).
-        addField(vote.data6, vote.votes6).
-        addField(vote.data7, vote.votes7).
-        addField(vote.data8, vote.votes8).
-        addField(vote.data9, vote.votes9).
-        addField(vote.data10, vote.votes10).
-        addField(`作成者`, vote.creator).
+        addField(vote.data2, vote.votes2);
+      if (vote.data3.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data3, vote.votes3);
+      }
+      if (vote.data4.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data4, vote.votes4);
+      }
+      if (vote.data5.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data5, vote.votes5);
+      }
+      if (vote.data6.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data6, vote.votes6);
+      }
+      if (vote.data7.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data7, vote.votes7);
+      }
+      if (vote.data8.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data8, vote.votes8);
+      }
+      if (vote.data9.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data9, vote.votes9);
+      }
+      if (vote.data10.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data10, vote.votes10);
+      }
+      voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString()).
         setFooter(`閉じられているか: ${vote.closed}`);
       msg.channel.send(voteEmbed);
     } else {
@@ -233,16 +271,32 @@ global.vote = (msg, split) => {
     const voteEmbed = new discord.RichEmbed().
       setTitle(`投票`).
       addField(vote.data1, vote.votes1).
-      addField(vote.data2, vote.votes2).
-      addField(vote.data3, vote.votes3).
-      addField(vote.data4, vote.votes4).
-      addField(vote.data5, vote.votes5).
-      addField(vote.data6, vote.votes6).
-      addField(vote.data7, vote.votes7).
-      addField(vote.data8, vote.votes8).
-      addField(vote.data9, vote.votes9).
-      addField(vote.data10, vote.votes10).
-      addField(`作成者`, vote.creator).
+      addField(vote.data2, vote.votes2);
+      if (vote.data3.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data3, vote.votes3);
+      }
+      if (vote.data4.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data4, vote.votes4);
+      }
+      if (vote.data5.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data5, vote.votes5);
+      }
+      if (vote.data6.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data6, vote.votes6);
+      }
+      if (vote.data7.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data7, vote.votes7);
+      }
+      if (vote.data8.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data8, vote.votes8);
+      }
+      if (vote.data9.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data9, vote.votes9);
+      }
+      if (vote.data10.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data10, vote.votes10);
+      }
+      voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString()).
       setFooter(`閉じられているか: ${vote.closed}`);
     msg.channel.send(voteEmbed);
   } else if (split[1] === `list`) {
@@ -254,7 +308,6 @@ global.vote = (msg, split) => {
     for (let i = 0; i < items.length; i++) {
       sb.append(`${items[i].replace(`.json`, ``)}\n`);
     }
-    sb.append(`Folder: ./data/votes/${msg.guild.id}/`);
     embed.setDescription(sb.toString());
     msg.channel.send(embed);
   } else if (split[1] === `info`) {
@@ -268,17 +321,33 @@ global.vote = (msg, split) => {
       setTimestamp().
       setTitle(`投票`).
       addField(vote.data1, vote.votes1).
-      addField(vote.data2, vote.votes2).
-      addField(vote.data3, vote.votes3).
-      addField(vote.data4, vote.votes4).
-      addField(vote.data5, vote.votes5).
-      addField(vote.data6, vote.votes6).
-      addField(vote.data7, vote.votes7).
-      addField(vote.data8, vote.votes8).
-      addField(vote.data9, vote.votes9).
-      addField(vote.data10, vote.votes10).
-      addField(`作成者`, client.users.get(vote.creator).toString()).
-      setFooter(`閉じられているか: ${vote.closed} ・ 項目がundefinedになってるのはデータがありません。これには投票しないでください。`);
+      addField(vote.data2, vote.votes2);
+      if (vote.data3.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data3, vote.votes3);
+      }
+      if (vote.data4.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data4, vote.votes4);
+      }
+      if (vote.data5.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data5, vote.votes5);
+      }
+      if (vote.data6.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data6, vote.votes6);
+      }
+      if (vote.data7.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data7, vote.votes7);
+      }
+      if (vote.data8.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data8, vote.votes8);
+      }
+      if (vote.data9.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data9, vote.votes9);
+      }
+      if (vote.data10.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data10, vote.votes10);
+      }
+      voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString()).
+      setFooter(`閉じられているか: ${vote.closed}`);
     msg.channel.send(voteEmbed);
   } else {
     msg.channel.send(messages.wrong_args);
