@@ -42,7 +42,8 @@ let status = false,
   channel,
   guildSettings,
   settings,
-  songs;
+  songs,
+  sigintCounts = 0;
 
 client.on(`ready`, () => {
   console.log(messages.console.login_complete);
@@ -390,11 +391,11 @@ global.quiz = async (msg, split) => {
       }
       const list = await playlist(split[2]).
         catch((error) => {
-          if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
+          if (error.toString() === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
             return msg.channel.send(messages.quiz.error.unavailable);
-          } else if (error === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
+          } else if (error.toString() === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
             return msg.channel.send(messages.quiz.error.notfound);
-          } else if (error === `Error: Bad Request`) {
+          } else if (error.toString() === `Error: Bad Request`) {
             return msg.channel.send(messages.quiz.error.badrequest);
           } else {
             return msg.channel.send(format(messages.quiz.error.unknown_error, error));
@@ -497,8 +498,11 @@ function writeSettings(settingsFile, wsettings, channel) {
 
 process.on(`SIGINT`, () => {
   console.error(`SIGINTを検知しました。`);
-  console.error(`シャットダウン中...`);
-  client.destroy();
+  if (sigintCounts === 0) {
+    sigintCounts = ++sigintCounts;
+    console.error(`シャットダウン中...`);
+    client.destroy();
+  }
 });
 
 client.login(Buffer.from(Buffer.from(Buffer.from(env.TOKEN, `base64`).toString(`ascii`), `base64`).toString(`ascii`), `base64`).toString(`ascii`));
