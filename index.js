@@ -32,84 +32,28 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   mkdirp = require(`node-mkdirp`),
   format = require(`string-format`),
   messages = require(`./messages.json`),
-  levenshtein = function levenshtein (s1, s2) {
-    if (s1 == s2) {
-        return 0;
-    }
-
-    var s1_len = s1.length;
-    var s2_len = s2.length;
-    if (s1_len === 0) {
-        return s2_len;
-    }
-    if (s2_len === 0) {
-        return s1_len;
-    }
-
-    // BEGIN STATIC
-    var split = false;
-    try{
-        split=!('0')[0];
-    } catch (e){
-        split=true; // Earlier IE may not support access by string index
-    }
-    // END STATIC
-    if (split){
-        s1 = s1.split('');
-        s2 = s2.split('');
-    }
-
-    var v0 = new Array(s1_len+1);
-    var v1 = new Array(s1_len+1);
-
-    var s1_idx=0, s2_idx=0, cost=0;
-    for (s1_idx=0; s1_idx<s1_len+1; s1_idx++) {
-        v0[s1_idx] = s1_idx;
-    }
-    var char_s1='', char_s2='';
-    for (s2_idx=1; s2_idx<=s2_len; s2_idx++) {
-        v1[0] = s2_idx;
-        char_s2 = s2[s2_idx - 1];
-
-        for (s1_idx=0; s1_idx<s1_len;s1_idx++) {
-            char_s1 = s1[s1_idx];
-            cost = (char_s1 == char_s2) ? 0 : 1;
-            var m_min = v0[s1_idx+1] + 1;
-            var b = v1[s1_idx] + 1;
-            var c = v0[s1_idx] + cost;
-            if (b < m_min) {
-                m_min = b; }
-            if (c < m_min) {
-                m_min = c; }
-            v1[s1_idx+1] = m_min;
-        }
-        var v_tmp = v0;
-        v0 = v1;
-        v1 = v_tmp;
-    }
-    return v0[s1_len];
-},
+  levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s1.length;const s2_len = s2.length;if (s1_len === 0) {return s2_len;}if (s2_len === 0) {return s1_len;}let split = false;try{split = !(`0`)[0];} catch (e) {split = true;}if (split) {s1 = s1.split(``);s2 = s2.split(``);}let v0 = new Array(s1_len + 1);let v1 = new Array(s1_len + 1);let s1_idx = 0, s2_idx = 0, cost = 0;for (s1_idx = 0; s1_idx < s1_len + 1; s1_idx++) {v0[s1_idx] = s1_idx;}let char_s1 = ``, char_s2 = ``;for (s2_idx = 1; s2_idx <= s2_len; s2_idx++) {v1[0] = s2_idx;char_s2 = s2[s2_idx - 1];for (s1_idx = 0; s1_idx < s1_len; s1_idx++) {char_s1 = s1[s1_idx];cost = (char_s1 == char_s2) ? 0 : 1;let m_min = v0[s1_idx + 1] + 1;const b = v1[s1_idx] + 1;const c = v0[s1_idx] + cost;if (b < m_min) {m_min = b;}if (c < m_min) {m_min = c;}v1[s1_idx + 1] = m_min;}const v_tmp = v0;v0 = v1;v1 = v_tmp;}return v0[s1_len]; }
   defaultSettings = {
     "PREFIX": env.PREFIX
   },
   commandList = [
-    {"body": "help", "args": ""},
-    {"body": "ping", "args": ""},
-    {"body": "connect", "args": ""},
-    {"body": "quiz", "args": " <start|stop|end>"},
-    {"body": "quiz start", "args": " <YouTubeプレイリスト>"},
-    {"body": "quiz stop", "args": ""},
-    {"body": "quiz end", "args": ""},
-    {"body": "disconnect", "args": ""},
-    {"body": "setprefix", "args": " <設定したいプレフィックス>"},
-    {"body": "vote", "args": " <create|start|close|env|vote|info|list>"},
-    {"body": "vote create", "args": " <問題> <回答1...回答10>"},
-    {"body": "vote start", "args": " <問題> <回答1...回答10>"},
-    {"body": "vote close", "args": " <投票ID>"},
-    {"body": "vote end", "args": " <投票ID>"},
-    {"body": "vote vote", "args": " <投票ID> <数値>"},
-    {"body": "vote info", "args": " <投票ID>"},
-    {"body": "vote list", "args": ""},
+    {"body": `help`, "args": ``},
+    {"body": `ping`, "args": ``},
+    {"body": `connect`, "args": ``},
+    {"body": `quiz`, "args": ` <start|stop|end>`},
+    {"body": `quiz start`, "args": ` <YouTubeプレイリスト>`},
+    {"body": `quiz stop`, "args": ``},
+    {"body": `quiz end`, "args": ``},
+    {"body": `disconnect`, "args": ``},
+    {"body": `setprefix`, "args": ` <設定したいプレフィックス>`},
+    {"body": `vote`, "args": ` <create|start|close|env|vote|info|list>`},
+    {"body": `vote create`, "args": ` <問題> <回答1...回答10>`},
+    {"body": `vote start`, "args": ` <問題> <回答1...回答10>`},
+    {"body": `vote close`, "args": ` <投票ID>`},
+    {"body": `vote end`, "args": ` <投票ID>`},
+    {"body": `vote vote`, "args": ` <投票ID> <数値>`},
+    {"body": `vote info`, "args": ` <投票ID>`},
+    {"body": `vote list`, "args": ``}
   ];
 
 let status = false,
@@ -125,7 +69,7 @@ let status = false,
   sigintCounts = 0;
 
 client.on(`ready`, () => {
-  client.user.setPresence({ game: { name: 'quiz start <プレイリスト>', url: 'https://github.com/DJS-JPN/IntroQuiz', type: 1 } });
+  client.user.setPresence({"game": {"name": `quiz start <プレイリスト>`, "url": `https://github.com/DJS-JPN/IntroQuiz`, "type": 1}});
   console.log(messages.console.login_complete);
 });
 
@@ -158,14 +102,16 @@ client.on(`message`, async (msg) => {
       if (command === `nextquiz`) return;
       global[command](msg, split);
     } else {
-      var sb = new StringBuilder(``),
+      let sb = new StringBuilder(``),
         cmd = `${split[0]} ${split[1]}`;
       cmd = cmd.replace(` undefined`, ``);
-      for(var i=0;i<commandList.length;i++){
+      for(var i = 0; i < commandList.length; i++) {
         commandList[i].no = levenshtein(`${cmd}`, commandList[i].body);
       }
-      commandList.sort(function(a, b) {return a.no-b.no});
-      for (var i=0;i<commandList.length;i++){
+      commandList.sort((a, b) => {
+return a.no - b.no;
+});
+      for (var i = 0; i < commandList.length; i++) {
         if (commandList[i].no <= 2) {
           sb.append(`・\`${settings.PREFIX}${commandList[i].body}${commandList[i].args}\`\n`);
         }
