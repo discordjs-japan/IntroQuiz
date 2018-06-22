@@ -32,7 +32,7 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   mkdirp = require(`node-mkdirp`),
   format = require(`string-format`),
   messages = require(`./messages.json`),
-  levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s1.length;const s2_len = s2.length;if (s1_len === 0) {return s2_len;}if (s2_len === 0) {return s1_len;}let split = false;try{split = !(`0`)[0];} catch (e) {split = true;}if (split) {s1 = s1.split(``);s2 = s2.split(``);}let v0 = new Array(s1_len + 1);let v1 = new Array(s1_len + 1);let s1_idx = 0, s2_idx = 0, cost = 0;for (s1_idx = 0; s1_idx < s1_len + 1; s1_idx++) {v0[s1_idx] = s1_idx;}let char_s1 = ``, char_s2 = ``;for (s2_idx = 1; s2_idx <= s2_len; s2_idx++) {v1[0] = s2_idx;char_s2 = s2[s2_idx - 1];for (s1_idx = 0; s1_idx < s1_len; s1_idx++) {char_s1 = s1[s1_idx];cost = (char_s1 == char_s2) ? 0 : 1;let m_min = v0[s1_idx + 1] + 1;const b = v1[s1_idx] + 1;const c = v0[s1_idx] + cost;if (b < m_min) {m_min = b;}if (c < m_min) {m_min = c;}v1[s1_idx + 1] = m_min;}const v_tmp = v0;v0 = v1;v1 = v_tmp;}return v0[s1_len]; }
+  levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s1.length; const s2_len = s2.length; if (s1_len === 0) {return s2_len;}if (s2_len === 0) {return s1_len;}let split = false; try{split = !(`0`)[0];}catch(e){split = true;}if (split) {s1 = s1.split(``); s2 = s2.split(``);}let v0 = new Array(s1_len + 1); let v1 = new Array(s1_len + 1); let s1_idx = 0, s2_idx = 0, cost = 0; for (s1_idx = 0; s1_idx < s1_len + 1; s1_idx++) {v0[s1_idx] = s1_idx;}let char_s1 = ``, char_s2 = ``; for (s2_idx = 1; s2_idx <= s2_len; s2_idx++) {v1[0] = s2_idx; char_s2 = s2[s2_idx - 1]; for (s1_idx = 0; s1_idx < s1_len; s1_idx++) {char_s1 = s1[s1_idx]; cost = (char_s1 == char_s2) ? 0 : 1; let m_min = v0[s1_idx + 1] + 1; const b = v1[s1_idx] + 1; const c = v0[s1_idx] + cost; if (b < m_min) {m_min = b;}if (c < m_min) {m_min = c;}v1[s1_idx + 1] = m_min;}const v_tmp = v0; v0 = v1; v1 = v_tmp;}return v0[s1_len];},
   defaultSettings = {
     "PREFIX": env.PREFIX
   },
@@ -69,7 +69,6 @@ let status = false,
   sigintCounts = 0;
 
 client.on(`ready`, () => {
-  client.user.setPresence({"game": {"name": `quiz start <プレイリスト>`, "url": `https://github.com/DJS-JPN/IntroQuiz`, "type": 1}});
   console.log(messages.console.login_complete);
 });
 
@@ -103,14 +102,13 @@ client.on(`message`, async (msg) => {
       global[command](msg, split);
     } else {
       let sb = new StringBuilder(``),
-        cmd = `${split[0]} ${split[1]}`;
-      cmd = cmd.replace(` undefined`, ``);
+        cmd = `${split[0]} ${split[1]}`.replace(` undefined`, ``);
       for(var i = 0; i < commandList.length; i++) {
         commandList[i].no = levenshtein(`${cmd}`, commandList[i].body);
       }
       commandList.sort((a, b) => {
-return a.no - b.no;
-});
+        return a.no - b.no;
+      });
       for (var i = 0; i < commandList.length; i++) {
         if (commandList[i].no <= 2) {
           sb.append(`・\`${settings.PREFIX}${commandList[i].body}${commandList[i].args}\`\n`);
