@@ -12,6 +12,9 @@
 // GitLab Repository: https://gitlab.com/DJS-JPN/IntroQuiz
 //
 
+/* Clear cache */
+delete require.cache[require.resolve(`./messages.json`)];
+
 const {"parsed": env} = require(`dotenv-safe`).config(),
   discord = require(`discord.js`),
   client = new discord.Client(),
@@ -29,6 +32,7 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   mkdirp = require(`node-mkdirp`),
   format = require(`string-format`),
   messages = require(`./messages.json`),
+  levenshtein = require('fast-levenshtein'),
   defaultSettings = {
     "PREFIX": env.PREFIX
   };
@@ -46,6 +50,7 @@ let status = false,
   sigintCounts = 0;
 
 client.on(`ready`, () => {
+  client.user.setPresence({ game: { name: 'quiz start <プレイリスト>', url: 'https://github.com/DJS-JPN/IntroQuiz', type: 1 } });
   console.log(messages.console.login_complete);
 });
 
