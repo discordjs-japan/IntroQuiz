@@ -49,5 +49,5 @@
   "saved_settings": "ファイルを保存しました。",
   "cantsave_nospace": ":x: 設定を保存できません。スペース、もしくは文字が入力されていません。",
   "no_permission": ":x: このコマンドの実行には権限が必要です。",
-  "didyoumean": "これはもしかして？ {0}"
+  "didyoumean": "これはもしかして？ \n{0}"
 }

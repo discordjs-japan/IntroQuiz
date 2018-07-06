@@ -36,25 +36,7 @@ const levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s
 const defaultSettings = {
   "PREFIX": env.PREFIX
 };
-const commandList = [
-  {"body": `help`, "args": ``},
-  {"body": `ping`, "args": ``},
-  {"body": `connect`, "args": ``},
-  {"body": `quiz`, "args": ` (start|stop|end)`},
-  {"body": `quiz start`, "args": ` <YouTubeプレイリスト>`},
-  {"body": `quiz stop`, "args": ``},
-  {"body": `quiz end`, "args": ``},
-  {"body": `disconnect`, "args": ``},
-  {"body": `setprefix`, "args": ` <設定したいプレフィックス>`},
-  {"body": `vote`, "args": ` (create|start|close|env|vote|info|list)`},
-  {"body": `vote create`, "args": ` <問題> <回答1...回答10>`},
-  {"body": `vote start`, "args": ` <問題> <回答1...回答10>`},
-  {"body": `vote close`, "args": ` <投票ID>`},
-  {"body": `vote end`, "args": ` <投票ID>`},
-  {"body": `vote vote`, "args": ` <投票ID> <数値>`},
-  {"body": `vote info`, "args": ` <投票ID>`},
-  {"body": `vote list`, "args": ``}
-];
+const commands = [`help`, `ping`, `connect`, `quiz`, `disconnect`, `setprefix`, `vote`];
 
 let status = false;
 let correct = false;
@@ -101,23 +83,17 @@ client.on(`message`, async (msg) => {
       if (command === `nextquiz`) return;
       global[command](msg, split);
     } else {
-      const list = [];
-      const cmd = `${split[0]} ${split[1]}`.replace(` undefined`, ``);
-      for (let i = 0; i < commandList.length; i++) {
-        commandList[i].no = levenshtein(`${cmd}`, commandList[i].body);
-      }
-      commandList.sort((a, b) => {
-        return a.no - b.no;
-      });
-      for (let i = 0; i < commandList.length; i++) {
-        if (commandList[i].no <= 2) {
-          list.push(`・\`${settings.PREFIX}${commandList[i].body}${commandList[i].args}\``);
-        }
-      }
+      const commandList = commands.map((cmd) => ({
+        "command": cmd,
+        "levenshtein": levenshtein(split[0], cmd)
+      }));
+      const similarCmds = commandList.filter((e) => e.levenshtein <= 2)
+        .sort((a, b) => a.no - b.no)
+        .map((e) => `・\`${settings.PREFIX}${e.command}\``)
+        .join(`\n`);
+      if (!similarCmds) return;
       msg.channel.send(messages.no_command);
-      if (list.length) {
-        msg.channel.send(format(messages.didyoumean, `\n${list.join(`\n`)}`));
-      }
+      msg.channel.send(format(messages.didyoumean, similarCmds));
     }
   } else if (status) {
     const answera = songReplace(songinfo[1]);
