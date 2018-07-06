@@ -99,7 +99,7 @@ client.on(`message`, async (msg) => {
     const answera = songReplace(songinfo[1]);
     const answerb = songReplace2(songinfo[1]); // pickup another answer
     const answerc = songReplace3(songinfo[1]); // pickup another another answer (experimental)
-    if (~msg.content.indexOf(answera) || ~msg.content.indexOf(answerb) || ~msg.content.indexOf(answerc)) {
+    if (msg.content.includes(answera) || msg.content.includes(answerb) || msg.content.includes(answerc)) {
       correct = true;
       msg.channel.send(format(messages.correct, songinfo[1], songinfo[0]));
       dispatcher.end();
@@ -399,7 +399,7 @@ global.quiz = async (msg, split) => {
         return msg.channel.send(messages.quiz.not_enough_count);
       }
       split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
-      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
+      if (split[2].includes(`https://www.youtube.com/watch?v=`) && split[2].includes(`&list=`)) {
         split[2] = split[2].replace(`&list=`, ``);
         split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
         split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
