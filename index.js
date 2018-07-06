@@ -20,7 +20,6 @@ const {"parsed": env} = require(`dotenv-safe`).config(),
   client = new discord.Client(),
   ytdl = require(`ytdl-core`),
   playlist = require(`./playlist`),
-  StringBuilder = require(`node-stringbuilder`),
   {
     songReplace,
     songReplace2,
@@ -101,7 +100,7 @@ client.on(`message`, async (msg) => {
       if (command === `nextquiz`) return;
       global[command](msg, split);
     } else {
-      let sb = new StringBuilder(``),
+      let list = [],
         cmd = `${split[0]} ${split[1]}`.replace(` undefined`, ``);
       for(var i = 0; i < commandList.length; i++) {
         commandList[i].no = levenshtein(`${cmd}`, commandList[i].body);
@@ -111,12 +110,12 @@ client.on(`message`, async (msg) => {
       });
       for (var i = 0; i < commandList.length; i++) {
         if (commandList[i].no <= 2) {
-          sb.append(`・\`${settings.PREFIX}${commandList[i].body}${commandList[i].args}\`\n`);
+          list.push(`・\`${settings.PREFIX}${commandList[i].body}${commandList[i].args}\``);
         }
       }
       msg.channel.send(messages.no_command);
-      if (sb.toString() != ``) {
-        msg.channel.send(format(messages.didyoumean, `\n${sb.toString()}`));
+      if (list.length) {
+        msg.channel.send(format(messages.didyoumean, `\n${list.join(`\n`)}`));
       }
     }
   } else if (status) {
@@ -343,12 +342,12 @@ global.vote = (msg, split) => {
     const embed = new discord.RichEmbed().
       setTitle(`投票ID一覧`).
       setTimestamp(),
-      sb = new StringBuilder(``),
+      list = [],
       items = fs.readdirSync(`./data/votes/${msg.guild.id}/`);
     for (let i = 0; i < items.length; i++) {
-      sb.append(`${items[i].replace(`.json`, ``)}\n`);
+      list.push(items[i].replace(`.json`, ``));
     }
-    embed.setDescription(sb.toString());
+    embed.setDescription(list.join(`\n`));
     msg.channel.send(embed);
   } else if (split[1] === `info`) {
     if (!split[2]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);

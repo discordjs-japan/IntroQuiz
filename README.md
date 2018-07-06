@@ -9,7 +9,7 @@
    - デフォルトは`q.`です。
    - 設定方法は`setprefix <プレフィックス>`です。
  - `messages.json`を使用してメッセージをまとめてます(下記の`string-format`も使用)。
- - 投票コマンドを作成。おまけ機能的な何か(voteコマンドで`node-stringbuilder`を使用)。
+ - 投票コマンドを作成。おまけ機能的な何か。
 
 ---
 ## 注意
@@ -19,7 +19,6 @@ __**このブランチはおそらく不安定です。**__(不安定性: master
  - `fs`
  - `node-mkdirp`
  - `string-format`
- - `node-stringbuilder`
 
 ---
 ### コマンド
