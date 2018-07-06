@@ -25,7 +25,6 @@ const {
   songReplace2,
   songReplace3
 } = require(`./song_replace`);
-const ypi = require(`youtube-playlist-info`);
 const process = require(`process`);
 const fs = require(`fs`);
 const mkdirp = require(`node-mkdirp`);
@@ -44,7 +43,6 @@ let songinfo = ``;
 let connection = ``;
 let dispatcher;
 let timeout;
-let channel;
 let guildSettings;
 let settings;
 let songs;
@@ -108,7 +106,7 @@ client.on(`message`, async (msg) => {
 commands.ping = {
   "description": `ボットのPingを確認`,
   "usage": [[`ping`, `ボットのPingを確認`]],
-  run(msg, split) {
+  run(msg) {
     msg.channel.send(format(messages.pong, Math.floor(client.ping)));
   }
 };
@@ -144,9 +142,9 @@ commands.help = {
 commands.connect = {
   "description": `ボイスチャンネルに接続`,
   "usage": [[`connect`, `ボイスチャンネルに接続`]],
-  run(msg, split) {
+  run(msg) {
     if (msg.member.voiceChannel) {
-      msg.member.voiceChannel.join().then((connection) =>
+      msg.member.voiceChannel.join().then(() =>
         msg.channel.send(format(messages.join_vc.success, msg.member.voiceChannel.name))
       ).catch((error) => {
         if (msg.member.voiceChannel.full) {
@@ -398,9 +396,8 @@ commands.vote = {
 commands.disconnect = {
   "description": `ボイスチャンネルから切断`,
   "usage": [[`disconnect`, `ボイスチャンネルから切断`]],
-  run(msg, split) {
+  run(msg) {
     client.clearTimeout(timeout);
-    channel = null;
     if (status) {
       status = false;
       correct = false;
@@ -473,7 +470,6 @@ commands.quiz = {
     } else if (split[1] === `end` || split[1] === `stop`) {
       if (status) {
         client.clearTimeout(timeout);
-        channel = null;
         status = false;
         correct = false;
         dispatcher.end();
@@ -497,7 +493,7 @@ function nextquiz(msg, number = 0) {
     console.log(songinfo);
     const stream = ytdl(songinfo[0], {"filter": `audioonly`});
     dispatcher = connection.playStream(stream);
-    dispatcher.on(`end`, (end) => {
+    dispatcher.on(`end`, () => {
       if (!correct)
         msg.channel.send(format(messages.quiz.uncorrect, songinfo[1], songinfo[0]));
       if (status) nextquiz(msg, number);
@@ -506,25 +502,25 @@ function nextquiz(msg, number = 0) {
 }
 
 commands.test = {
-  run(msg, split) {
+  run(msg) {
     msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(settings.PREFIX + `test `, ``)) + `\``);
   }
 };
 
 commands.test2 = {
-  run(msg, split) {
+  run(msg) {
     msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(settings.PREFIX + `test2 `, ``)) + `\``);
   }
 };
 
 commands.test3 = {
-  run(msg, split) {
+  run(msg) {
     msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(settings.PREFIX + `test3 `, ``)) + `\``);
   }
 };
 
 commands.testmulti = {
-  run(msg, split) {
+  run(msg) {
     const embed = new discord.RichEmbed()
       .setTitle(`判定テスト`)
       .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
