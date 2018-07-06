@@ -109,6 +109,7 @@ client.on(`message`, async (msg) => {
 });
 commands.ping = {
   "description": `ボットのPingを確認`,
+  "usage": [[`ping`, `ボットのPingを確認`]],
   run(msg, split) {
     msg.channel.send(format(messages.pong, Math.floor(client.ping)));
   }
@@ -116,21 +117,35 @@ commands.ping = {
 
 commands.help = {
   "description": `ヘルプを表示`,
+  "usage": [[`help [<command>]`, `ヘルプを表示`]],
   run(msg, split) {
-    const embed = new discord.RichEmbed()
-      .setTitle(`コマンド一覧`)
-      .setTimestamp();
-    Object.keys(commands).forEach((cmd) => {
-      const command = commands[cmd];
-      if (command.description)
-        embed.addField(cmd, command.description);
-    });
-    msg.channel.send(embed);
+    if (split[1]) {
+      const cmd = commands[split[1]];
+      if (!cmd || !cmd.description && !cmd.usage)
+        return msg.channel.send(messages.no_command);
+      const embed = new discord.RichEmbed()
+        .setTitle(split[1])
+        .setTimestamp();
+      if (cmd.description) embed.setDescription(cmd.description);
+      if (cmd.usage) cmd.usage.forEach((usage) => embed.addField(...usage));
+      msg.channel.send(embed);
+    } else {
+      const embed = new discord.RichEmbed()
+        .setTitle(`コマンド一覧`)
+        .setTimestamp();
+      Object.keys(commands).forEach((cmd) => {
+        const command = commands[cmd];
+        if (command.description)
+          embed.addField(cmd, command.description);
+      });
+      msg.channel.send(embed);
+    }
   }
 };
 
 commands.connect = {
   "description": `ボイスチャンネルに接続`,
+  "usage": [[`connect`, `ボイスチャンネルに接続`]],
   run(msg, split) {
     if (msg.member.voiceChannel) {
       msg.member.voiceChannel.join().then((connection) =>
@@ -153,6 +168,13 @@ commands.connect = {
 
 commands.vote = {
   "description": `投票を作成、投票、終了、状態表示`,
+  "usage": [
+    [`vote (create|start) <名前> <回答1>|<回答2>[|<回答3>[|...[|<回答10>]]]`, `投票を作成`],
+    [`vote vote <投票ID> <投票する番号(1-10)>`, `投票する`],
+    [`vote (close|end) <投票ID>`, `投票を閉じる`],
+    [`vote list`, `投票IDの一覧を表示`],
+    [`vote info`, `投票IDの状況を表示`]
+  ],
   run(msg, split) {
     if (split[1] === `create` || split[1] === `start`) {
       if (!(/.*?\|.*?/gm).test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
@@ -377,6 +399,7 @@ commands.vote = {
 
 commands.disconnect = {
   "description": `ボイスチャンネルから切断`,
+  "usage": [[`disconnect`, `ボイスチャンネルから切断`]],
   run(msg, split) {
     client.clearTimeout(timeout);
     channel = null;
@@ -394,6 +417,10 @@ commands.disconnect = {
 
 commands.quiz = {
   "description": `イントロクイズを開始、終了`,
+  "usage": [
+    [`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`],
+    [`quiz (end|stop)`, `イントロクイズを終了`]
+  ],
   async run(msg, split) {
     if (split[1] === `start`) {
       if (status) return;
@@ -512,6 +539,7 @@ commands.testmulti = {
 
 commands.setprefix = {
   "description": `プレフィックスを設定`,
+  "usage": [[`setprefix <プレフィックス>`, `プレフィックスを設定`]],
   run(msg, split) {
     if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
     const set = settings;
