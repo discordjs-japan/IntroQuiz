@@ -79,10 +79,8 @@ client.on(`message`, async (msg) => {
     console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
     const split = msg.content.replace(settings.PREFIX, ``).split(` `);
     const command = split[0];
-    if (typeof commands[command].run === `function`) {
-      if (command === `nextquiz`) return;
-      commands[command].run(msg, split);
-    } else {
+    if (commands[command]) commands[command].run(msg, split);
+    else {
       const cmds = Object.keys(commands);
       const commandList = cmds.map((cmd) => ({
         "command": cmd,
