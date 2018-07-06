@@ -36,7 +36,6 @@ const levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s
 const defaultSettings = {
   "PREFIX": env.PREFIX
 };
-const cmds = [`help`, `ping`, `connect`, `quiz`, `disconnect`, `setprefix`, `vote`];
 const commands = {};
 
 let status = false;
@@ -80,10 +79,11 @@ client.on(`message`, async (msg) => {
     console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
     const split = msg.content.replace(settings.PREFIX, ``).split(` `);
     const command = split[0];
-    if (typeof commands[command] === `function`) {
+    if (typeof commands[command].run === `function`) {
       if (command === `nextquiz`) return;
-      commands[command](msg, split);
+      commands[command].run(msg, split);
     } else {
+      const cmds = Object.keys(commands);
       const commandList = cmds.map((cmd) => ({
         "command": cmd,
         "levenshtein": levenshtein(split[0], cmd)
@@ -107,138 +107,98 @@ client.on(`message`, async (msg) => {
     }
   }
 });
-commands.ping = (msg, split) => {
-  msg.channel.send(format(messages.pong, Math.floor(client.ping)));
-};
-
-commands.help = (msg, split) => {
-  const embed = new discord.RichEmbed()
-    .setTitle(`コマンド一覧`)
-    .setTimestamp()
-    .setFooter(`ヘルプコマンド(help)`)
-    .addField(`help`, `ヘルプを表示`)
-    .addField(`ping`, `ボットのPingを確認`)
-    .addField(`connect`, `ボイスチャンネルに接続`)
-    .addField(`disconnect`, `ボイスチャットから切断`)
-    .addField(`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`)
-    .addField(`quiz (end|stop)`, `イントロクイズを終了`)
-    .addField(`vote (create|start) <名前> <回答1>|<回答2>[|<回答3>[|...[|<回答10>]]]`, `投票を作成します`)
-    .addField(`vote vote <投票ID> <投票する番号(1-10)>`, `投票します`)
-    .addField(`vote (close|end) <投票ID>`, `投票を閉じます。**投票を作成した人だけが実行可能です**`)
-    .addField(`vote list`, `投票IDの一覧を表示します`)
-    .addField(`vote info`, `指定された投票IDの状況を表示します`)
-    .addField(`setprefix <設定したいプレフィックス>`, `プレフィックスを設定します。\n**管理者**権限を持っている人だけ実行可能です。`);
-  msg.channel.send(embed);
-};
-
-commands.connect = (msg, split) => {
-  if (msg.member.voiceChannel) {
-    msg.member.voiceChannel.join().then((connection) =>
-      msg.channel.send(format(messages.join_vc.success, msg.member.voiceChannel.name))
-    ).catch((error) => {
-      if (msg.member.voiceChannel.full) {
-        msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
-      } else if (!msg.member.voiceChannel.joinable) {
-        msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
-      } else {
-        msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
-        console.error(format(messages.console.join_vc_error, error));
-      }
-    });
-  } else {
-    msg.channel.send(messages.join_vc.tryagain);
+commands.ping = {
+  "description": `ボットのPingを確認`,
+  run(msg, split) {
+    msg.channel.send(format(messages.pong, Math.floor(client.ping)));
   }
 };
 
-commands.vote = (msg, split) => {
-  if (split[1] === `create` || split[1] === `start`) {
-    if (!(/.*?\|.*?/gm).test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
-    if (split[3].split(`|`).length > 10) return msg.channel.send(format(messages.votes.too_many_args, split[3].split(`|`).length - 1));
-    let voteId = Math.random().toString(36).substr(2, 5);
-    const guildId = msg.guild.id;
-    while (true) {
-      if (fs.existsSync(`./data/votes/${guildId}/${voteId}.json`)) {
-        voteId = Math.random().toString(36).substr(2, 5);
-        continue;
-      } else {
-        break;
-      }
-    }
-    const args = split[3].split(`|`);
-    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
-    const voteData = {
-      "title": `${split[2]}`,
-      "data1": `${args[0]}`,
-      "data2": `${args[1]}`,
-      "data3": `${args[2]}`,
-      "data4": `${args[3]}`,
-      "data5": `${args[4]}`,
-      "data6": `${args[5]}`,
-      "data7": `${args[6]}`,
-      "data8": `${args[7]}`,
-      "data9": `${args[8]}`,
-      "data10": `${args[9]}`,
-      "closed": false,
-      "votes1": 0,
-      "votes2": 0,
-      "votes3": 0,
-      "votes4": 0,
-      "votes5": 0,
-      "votes6": 0,
-      "votes7": 0,
-      "votes8": 0,
-      "votes9": 0,
-      "votes10": 0,
-      "creator": `${msg.author.id}`
-    };
-    fs.writeFileSync(voteFile, JSON.stringify(voteData, null, 4), `utf8`, (err) => {
-      console.error(err);
+commands.help = {
+  "description": `ヘルプを表示`,
+  run(msg, split) {
+    const embed = new discord.RichEmbed()
+      .setTitle(`コマンド一覧`)
+      .setTimestamp();
+    Object.keys(commands).forEach((cmd) => {
+      const command = commands[cmd];
+      if (command.description)
+        embed.addField(cmd, command.description);
     });
-    const vote = require(voteFile);
-    msg.channel.send(`\`${voteId}\`を作成しました。\n投票には、\`${settings.PREFIX}vote vote <ID> <数値>\`を入力してください。`);
-    const voteEmbed = new discord.RichEmbed()
-      .setTitle(`投票`)
-      .addField(vote.data1, vote.votes1)
-      .addField(vote.data2, vote.votes2);
-    if (vote.data3.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data3, vote.votes3);
+    msg.channel.send(embed);
+  }
+};
+
+commands.connect = {
+  "description": `ボイスチャンネルに接続`,
+  run(msg, split) {
+    if (msg.member.voiceChannel) {
+      msg.member.voiceChannel.join().then((connection) =>
+        msg.channel.send(format(messages.join_vc.success, msg.member.voiceChannel.name))
+      ).catch((error) => {
+        if (msg.member.voiceChannel.full) {
+          msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
+        } else if (!msg.member.voiceChannel.joinable) {
+          msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
+        } else {
+          msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
+          console.error(format(messages.console.join_vc_error, error));
+        }
+      });
+    } else {
+      msg.channel.send(messages.join_vc.tryagain);
     }
-    if (vote.data4.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data4, vote.votes4);
-    }
-    if (vote.data5.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data5, vote.votes5);
-    }
-    if (vote.data6.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data6, vote.votes6);
-    }
-    if (vote.data7.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data7, vote.votes7);
-    }
-    if (vote.data8.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data8, vote.votes8);
-    }
-    if (vote.data9.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data9, vote.votes9);
-    }
-    if (vote.data10.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data10, vote.votes10);
-    }
-    voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
-      .setFooter(`閉じられているか: ${vote.closed}`);
-    msg.channel.send(voteEmbed);
-  } else if (split[1] === `close` || split[1] === `end`) {
-    if (!split[2]) return msg.channel.send(messages.wrong_args);
-    const voteId = split[2];
-    const guildId = msg.guild.id;
-    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
-    if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
-    let vote = require(voteFile);
-    if (vote.creator === msg.author.id) {
-      vote.closed = true;
-      writeSettings(voteFile, vote, msg.channel);
-      vote = require(voteFile);
-      msg.channel.send(messages.votes.close);
+  }
+};
+
+commands.vote = {
+  "description": `投票を作成、投票、終了、状態表示`,
+  run(msg, split) {
+    if (split[1] === `create` || split[1] === `start`) {
+      if (!(/.*?\|.*?/gm).test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
+      if (split[3].split(`|`).length > 10) return msg.channel.send(format(messages.votes.too_many_args, split[3].split(`|`).length - 1));
+      let voteId = Math.random().toString(36).substr(2, 5);
+      const guildId = msg.guild.id;
+      while (true) {
+        if (fs.existsSync(`./data/votes/${guildId}/${voteId}.json`)) {
+          voteId = Math.random().toString(36).substr(2, 5);
+          continue;
+        } else {
+          break;
+        }
+      }
+      const args = split[3].split(`|`);
+      const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+      const voteData = {
+        "title": `${split[2]}`,
+        "data1": `${args[0]}`,
+        "data2": `${args[1]}`,
+        "data3": `${args[2]}`,
+        "data4": `${args[3]}`,
+        "data5": `${args[4]}`,
+        "data6": `${args[5]}`,
+        "data7": `${args[6]}`,
+        "data8": `${args[7]}`,
+        "data9": `${args[8]}`,
+        "data10": `${args[9]}`,
+        "closed": false,
+        "votes1": 0,
+        "votes2": 0,
+        "votes3": 0,
+        "votes4": 0,
+        "votes5": 0,
+        "votes6": 0,
+        "votes7": 0,
+        "votes8": 0,
+        "votes9": 0,
+        "votes10": 0,
+        "creator": `${msg.author.id}`
+      };
+      fs.writeFileSync(voteFile, JSON.stringify(voteData, null, 4), `utf8`, (err) => {
+        console.error(err);
+      });
+      const vote = require(voteFile);
+      msg.channel.send(`\`${voteId}\`を作成しました。\n投票には、\`${settings.PREFIX}vote vote <ID> <数値>\`を入力してください。`);
       const voteEmbed = new discord.RichEmbed()
         .setTitle(`投票`)
         .addField(vote.data1, vote.votes1)
@@ -270,186 +230,236 @@ commands.vote = (msg, split) => {
       voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
         .setFooter(`閉じられているか: ${vote.closed}`);
       msg.channel.send(voteEmbed);
-    } else {
-      msg.channel.send(messages.no_permission);
-    }
-  } else if (split[1] === `vote`) {
-    if (!split[3]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);
-    const voteId = split[2];
-    const guildId = msg.guild.id;
-    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
-    if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
-    let vote = require(voteFile);
-    if (vote[`closed`] === true) return msg.channel.send(messages.votes.closed);
-    vote[`votes${split[3]}`] = ++vote[`votes${split[3]}`];
-    writeSettings(voteFile, vote, msg.channel);
-    vote = require(voteFile);
-    msg.channel.send(messages.votes.voted);
-    const voteEmbed = new discord.RichEmbed()
-      .setTitle(`投票`)
-      .addField(vote.data1, vote.votes1)
-      .addField(vote.data2, vote.votes2);
-    if (vote.data3.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data3, vote.votes3);
-    }
-    if (vote.data4.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data4, vote.votes4);
-    }
-    if (vote.data5.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data5, vote.votes5);
-    }
-    if (vote.data6.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data6, vote.votes6);
-    }
-    if (vote.data7.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data7, vote.votes7);
-    }
-    if (vote.data8.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data8, vote.votes8);
-    }
-    if (vote.data9.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data9, vote.votes9);
-    }
-    if (vote.data10.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data10, vote.votes10);
-    }
-    voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
-      .setFooter(`閉じられているか: ${vote.closed}`);
-    msg.channel.send(voteEmbed);
-  } else if (split[1] === `list`) {
-    const embed = new discord.RichEmbed()
-      .setTitle(`投票ID一覧`)
-      .setTimestamp();
-    const list = [];
-    const items = fs.readdirSync(`./data/votes/${msg.guild.id}/`);
-    for (let i = 0; i < items.length; i++) {
-      list.push(items[i].replace(`.json`, ``));
-    }
-    embed.setDescription(list.join(`\n`));
-    msg.channel.send(embed);
-  } else if (split[1] === `info`) {
-    if (!split[2]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);
-    const voteId = split[2];
-    const guildId = msg.guild.id;
-    const voteFile = `./data/votes/${guildId}/${voteId}.json`;
-    if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
-    const vote = require(voteFile);
-    const voteEmbed = new discord.RichEmbed()
-      .setTimestamp()
-      .setTitle(`投票`)
-      .addField(vote.data1, vote.votes1)
-      .addField(vote.data2, vote.votes2);
-    if (vote.data3.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data3, vote.votes3);
-    }
-    if (vote.data4.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data4, vote.votes4);
-    }
-    if (vote.data5.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data5, vote.votes5);
-    }
-    if (vote.data6.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data6, vote.votes6);
-    }
-    if (vote.data7.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data7, vote.votes7);
-    }
-    if (vote.data8.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data8, vote.votes8);
-    }
-    if (vote.data9.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data9, vote.votes9);
-    }
-    if (vote.data10.toString() !== `undefined`) {
-      voteEmbed.addField(vote.data10, vote.votes10);
-    }
-    voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
-      .setFooter(`閉じられているか: ${vote.closed}`);
-    msg.channel.send(voteEmbed);
-  } else {
-    msg.channel.send(messages.wrong_args);
-  }
-};
-
-commands.disconnect = (msg, split) => {
-  client.clearTimeout(timeout);
-  channel = null;
-  if (status) {
-    status = false;
-    correct = false;
-    dispatcher.end();
-    connection.disconnect();
-  }
-  if (!msg.guild.me.voiceChannel) return msg.channel.send(messages.exit_vc_notjoined);
-  msg.guild.me.voiceChannel.leave();
-  msg.channel.send(format(messages.exit_vc, msg.guild.me.voiceChannel.name));
-};
-
-commands.quiz = async (msg, split) => {
-  if (split[1] === `start`) {
-    if (status) return;
-    if (msg.member.voiceChannel) {
-      if (!split[2]) return msg.channel.send(messages.quiz.please_playlistid);
-      split[2] = split[2].replace(/_/gm, `M`);
-      console.log(`Argument2: ${split[2]}`);
-      msg.channel.send(messages.quiz.loading);
-      if (split[2].length === 0) {
-        return msg.channel.send(`読み込めません。バグの可能性が高いです。引数[2]: ${split[2]}`);
-      }
-      if (split[2].length < 34) {
-        return msg.channel.send(messages.quiz.not_enough_count);
-      }
-      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
-      if (split[2].includes(`https://www.youtube.com/watch?v=`) && split[2].includes(`&list=`)) {
-        split[2] = split[2].replace(`&list=`, ``);
-        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
-      }
-      const list = await playlist(split[2])
-        .catch((error) => {
-          if (error.toString() === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
-            return msg.channel.send(messages.quiz.error.unavailable);
-          } else if (error.toString() === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
-            return msg.channel.send(messages.quiz.error.notfound);
-          } else if (error.toString() === `Error: Bad Request`) {
-            return msg.channel.send(messages.quiz.error.badrequest);
-          } else {
-            return msg.channel.send(format(messages.quiz.error.unknown_error, error));
-          }
-        });
-      if (!Array.isArray(list)) return msg.channel.send(list);
-      songs = list.map((video) => [video.resourceId.videoId, video.title]);
-      msg.member.voiceChannel.join().then((con) => {
-        connection = con;
-        status = true;
-        nextquiz(msg);
-      }).catch((error) => {
-        if (msg.member.voiceChannel.full) {
-          msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
-        } else if (!msg.member.voiceChannel.joinable) {
-          msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
-        } else {
-          msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
-          console.error(format(messages.console.join_vc_error, error));
+    } else if (split[1] === `close` || split[1] === `end`) {
+      if (!split[2]) return msg.channel.send(messages.wrong_args);
+      const voteId = split[2];
+      const guildId = msg.guild.id;
+      const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+      if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
+      let vote = require(voteFile);
+      if (vote.creator === msg.author.id) {
+        vote.closed = true;
+        writeSettings(voteFile, vote, msg.channel);
+        vote = require(voteFile);
+        msg.channel.send(messages.votes.close);
+        const voteEmbed = new discord.RichEmbed()
+          .setTitle(`投票`)
+          .addField(vote.data1, vote.votes1)
+          .addField(vote.data2, vote.votes2);
+        if (vote.data3.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data3, vote.votes3);
         }
-      });
+        if (vote.data4.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data4, vote.votes4);
+        }
+        if (vote.data5.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data5, vote.votes5);
+        }
+        if (vote.data6.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data6, vote.votes6);
+        }
+        if (vote.data7.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data7, vote.votes7);
+        }
+        if (vote.data8.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data8, vote.votes8);
+        }
+        if (vote.data9.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data9, vote.votes9);
+        }
+        if (vote.data10.toString() !== `undefined`) {
+          voteEmbed.addField(vote.data10, vote.votes10);
+        }
+        voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
+          .setFooter(`閉じられているか: ${vote.closed}`);
+        msg.channel.send(voteEmbed);
+      } else {
+        msg.channel.send(messages.no_permission);
+      }
+    } else if (split[1] === `vote`) {
+      if (!split[3]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);
+      const voteId = split[2];
+      const guildId = msg.guild.id;
+      const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+      if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
+      let vote = require(voteFile);
+      if (vote[`closed`] === true) return msg.channel.send(messages.votes.closed);
+      vote[`votes${split[3]}`] = ++vote[`votes${split[3]}`];
+      writeSettings(voteFile, vote, msg.channel);
+      vote = require(voteFile);
+      msg.channel.send(messages.votes.voted);
+      const voteEmbed = new discord.RichEmbed()
+        .setTitle(`投票`)
+        .addField(vote.data1, vote.votes1)
+        .addField(vote.data2, vote.votes2);
+      if (vote.data3.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data3, vote.votes3);
+      }
+      if (vote.data4.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data4, vote.votes4);
+      }
+      if (vote.data5.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data5, vote.votes5);
+      }
+      if (vote.data6.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data6, vote.votes6);
+      }
+      if (vote.data7.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data7, vote.votes7);
+      }
+      if (vote.data8.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data8, vote.votes8);
+      }
+      if (vote.data9.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data9, vote.votes9);
+      }
+      if (vote.data10.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data10, vote.votes10);
+      }
+      voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
+        .setFooter(`閉じられているか: ${vote.closed}`);
+      msg.channel.send(voteEmbed);
+    } else if (split[1] === `list`) {
+      const embed = new discord.RichEmbed()
+        .setTitle(`投票ID一覧`)
+        .setTimestamp();
+      const list = [];
+      const items = fs.readdirSync(`./data/votes/${msg.guild.id}/`);
+      for (let i = 0; i < items.length; i++) {
+        list.push(items[i].replace(`.json`, ``));
+      }
+      embed.setDescription(list.join(`\n`));
+      msg.channel.send(embed);
+    } else if (split[1] === `info`) {
+      if (!split[2]) return msg.channel.send(`${messages.wrong_args}\n投票IDを指定してください。一覧は\`${settings.PREFIX}vote list\`で見れます。`);
+      const voteId = split[2];
+      const guildId = msg.guild.id;
+      const voteFile = `./data/votes/${guildId}/${voteId}.json`;
+      if (!fs.existsSync(voteFile)) return msg.channel.send(messages.votes.no_file);
+      const vote = require(voteFile);
+      const voteEmbed = new discord.RichEmbed()
+        .setTimestamp()
+        .setTitle(`投票`)
+        .addField(vote.data1, vote.votes1)
+        .addField(vote.data2, vote.votes2);
+      if (vote.data3.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data3, vote.votes3);
+      }
+      if (vote.data4.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data4, vote.votes4);
+      }
+      if (vote.data5.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data5, vote.votes5);
+      }
+      if (vote.data6.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data6, vote.votes6);
+      }
+      if (vote.data7.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data7, vote.votes7);
+      }
+      if (vote.data8.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data8, vote.votes8);
+      }
+      if (vote.data9.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data9, vote.votes9);
+      }
+      if (vote.data10.toString() !== `undefined`) {
+        voteEmbed.addField(vote.data10, vote.votes10);
+      }
+      voteEmbed.addField(`作成者`, client.users.get(vote.creator).toString())
+        .setFooter(`閉じられているか: ${vote.closed}`);
+      msg.channel.send(voteEmbed);
     } else {
-      msg.channel.send(messages.join_vc.tryagain);
+      msg.channel.send(messages.wrong_args);
     }
-  } else if (split[1] === `end` || split[1] === `stop`) {
+  }
+};
+
+commands.disconnect = {
+  "description": `ボイスチャンネルから切断`,
+  run(msg, split) {
+    client.clearTimeout(timeout);
+    channel = null;
     if (status) {
-      client.clearTimeout(timeout);
-      channel = null;
       status = false;
       correct = false;
       dispatcher.end();
       connection.disconnect();
-      msg.channel.send(messages.quiz.stop);
-    } else {
-      msg.channel.send(messages.quiz.not_started);
     }
-  } else {
-    msg.channel.send(messages.wrong_args);
+    if (!msg.guild.me.voiceChannel) return msg.channel.send(messages.exit_vc_notjoined);
+    msg.guild.me.voiceChannel.leave();
+    msg.channel.send(format(messages.exit_vc, msg.guild.me.voiceChannel.name));
+  }
+};
+
+commands.quiz = {
+  "description": `イントロクイズを開始、終了`,
+  async run(msg, split) {
+    if (split[1] === `start`) {
+      if (status) return;
+      if (msg.member.voiceChannel) {
+        if (!split[2]) return msg.channel.send(messages.quiz.please_playlistid);
+        split[2] = split[2].replace(/_/gm, `M`);
+        console.log(`Argument2: ${split[2]}`);
+        msg.channel.send(messages.quiz.loading);
+        if (split[2].length === 0) {
+          return msg.channel.send(`読み込めません。バグの可能性が高いです。引数[2]: ${split[2]}`);
+        }
+        if (split[2].length < 34) {
+          return msg.channel.send(messages.quiz.not_enough_count);
+        }
+        split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
+        if (split[2].includes(`https://www.youtube.com/watch?v=`) && split[2].includes(`&list=`)) {
+          split[2] = split[2].replace(`&list=`, ``);
+          split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
+          split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
+        }
+        const list = await playlist(split[2])
+          .catch((error) => {
+            if (error.toString() === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
+              return msg.channel.send(messages.quiz.error.unavailable);
+            } else if (error.toString() === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
+              return msg.channel.send(messages.quiz.error.notfound);
+            } else if (error.toString() === `Error: Bad Request`) {
+              return msg.channel.send(messages.quiz.error.badrequest);
+            } else {
+              return msg.channel.send(format(messages.quiz.error.unknown_error, error));
+            }
+          });
+        if (!Array.isArray(list)) return msg.channel.send(list);
+        songs = list.map((video) => [video.resourceId.videoId, video.title]);
+        msg.member.voiceChannel.join().then((con) => {
+          connection = con;
+          status = true;
+          nextquiz(msg);
+        }).catch((error) => {
+          if (msg.member.voiceChannel.full) {
+            msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
+          } else if (!msg.member.voiceChannel.joinable) {
+            msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
+          } else {
+            msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
+            console.error(format(messages.console.join_vc_error, error));
+          }
+        });
+      } else {
+        msg.channel.send(messages.join_vc.tryagain);
+      }
+    } else if (split[1] === `end` || split[1] === `stop`) {
+      if (status) {
+        client.clearTimeout(timeout);
+        channel = null;
+        status = false;
+        correct = false;
+        dispatcher.end();
+        connection.disconnect();
+        msg.channel.send(messages.quiz.stop);
+      } else {
+        msg.channel.send(messages.quiz.not_started);
+      }
+    } else {
+      msg.channel.send(messages.wrong_args);
+    }
   }
 };
 
@@ -470,36 +480,47 @@ function nextquiz(msg, number = 0) {
   }, 5000);
 }
 
-commands.test = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(settings.PREFIX + `test `, ``)) + `\``);
+commands.test = {
+  run(msg, split) {
+    msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(settings.PREFIX + `test `, ``)) + `\``);
+  }
 };
 
-commands.test2 = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(settings.PREFIX + `test2 `, ``)) + `\``);
+commands.test2 = {
+  run(msg, split) {
+    msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(settings.PREFIX + `test2 `, ``)) + `\``);
+  }
 };
 
-commands.test3 = (msg, split) => {
-  msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(settings.PREFIX + `test3 `, ``)) + `\``);
+commands.test3 = {
+  run(msg, split) {
+    msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(settings.PREFIX + `test3 `, ``)) + `\``);
+  }
 };
 
-commands.testmulti = (msg, split) => {
-  const embed = new discord.RichEmbed()
-    .setTitle(`判定テスト`)
-    .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
-    .addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
-    .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
-    .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(settings.PREFIX + `testmulti `, ``) + `\``);
-  msg.channel.send(embed);
+commands.testmulti = {
+  run(msg, split) {
+    const embed = new discord.RichEmbed()
+      .setTitle(`判定テスト`)
+      .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
+      .addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
+      .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
+      .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(settings.PREFIX + `testmulti `, ``) + `\``);
+    msg.channel.send(embed);
+  }
 };
 
-commands.setprefix = (msg, split) => {
-  if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
-  const set = settings;
-  if (/\s/gm.test(split[1]) || split[1] === null) {
-    msg.channel.send(messages.cantsave_nospace);
-  } else {
-    set.PREFIX = split[1];
-    writeSettings(guildSettings, set, msg.channel);
+commands.setprefix = {
+  "description": `プレフィックスを設定`,
+  run(msg, split) {
+    if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
+    const set = settings;
+    if (/\s/gm.test(split[1]) || split[1] === null) {
+      msg.channel.send(messages.cantsave_nospace);
+    } else {
+      set.PREFIX = split[1];
+      writeSettings(guildSettings, set, msg.channel);
+    }
   }
 };
 
