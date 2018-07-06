@@ -143,10 +143,10 @@ global.help = (msg, split) => {
     addField(`connect`, `ボイスチャンネルに接続`).
     addField(`disconnect`, `ボイスチャットから切断`).
     addField(`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`).
-    addField(`quiz <end|stop>`, `イントロクイズを終了`).
-    addField(`vote <create|start> <名前> 回答1|回答2|回答3|...|回答10`, `投票を作成します`).
+    addField(`quiz (end|stop)`, `イントロクイズを終了`).
+    addField(`vote (create|start) <名前> <回答1>|<回答2>[|<回答3>[|...[|<回答10>]]]`, `投票を作成します`).
     addField(`vote vote <投票ID> <投票する番号(1-10)>`, `投票します`).
-    addField(`vote <close|end> <投票ID>`, `投票を閉じます。**投票を作成した人だけが実行可能です**`).
+    addField(`vote (close|end) <投票ID>`, `投票を閉じます。**投票を作成した人だけが実行可能です**`).
     addField(`vote list`, `投票IDの一覧を表示します`).
     addField(`vote info`, `指定された投票IDの状況を表示します`).
     addField(`setprefix <設定したいプレフィックス>`, `プレフィックスを設定します。\n**管理者**権限を持っている人だけ実行可能です。`);
