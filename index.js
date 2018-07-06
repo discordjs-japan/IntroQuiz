@@ -36,7 +36,8 @@ const levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s
 const defaultSettings = {
   "PREFIX": env.PREFIX
 };
-const commands = [`help`, `ping`, `connect`, `quiz`, `disconnect`, `setprefix`, `vote`];
+const cmds = [`help`, `ping`, `connect`, `quiz`, `disconnect`, `setprefix`, `vote`];
+const commands = {};
 
 let status = false;
 let correct = false;
@@ -79,11 +80,11 @@ client.on(`message`, async (msg) => {
     console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
     const split = msg.content.replace(settings.PREFIX, ``).split(` `);
     const command = split[0];
-    if (typeof global[command] === `function`) {
+    if (typeof commands[command] === `function`) {
       if (command === `nextquiz`) return;
-      global[command](msg, split);
+      commands[command](msg, split);
     } else {
-      const commandList = commands.map((cmd) => ({
+      const commandList = cmds.map((cmd) => ({
         "command": cmd,
         "levenshtein": levenshtein(split[0], cmd)
       }));
@@ -106,11 +107,11 @@ client.on(`message`, async (msg) => {
     }
   }
 });
-global.ping = (msg, split) => {
+commands.ping = (msg, split) => {
   msg.channel.send(format(messages.pong, Math.floor(client.ping)));
 };
 
-global.help = (msg, split) => {
+commands.help = (msg, split) => {
   const embed = new discord.RichEmbed()
     .setTitle(`コマンド一覧`)
     .setTimestamp()
@@ -130,7 +131,7 @@ global.help = (msg, split) => {
   msg.channel.send(embed);
 };
 
-global.connect = (msg, split) => {
+commands.connect = (msg, split) => {
   if (msg.member.voiceChannel) {
     msg.member.voiceChannel.join().then((connection) =>
       msg.channel.send(format(messages.join_vc.success, msg.member.voiceChannel.name))
@@ -149,7 +150,7 @@ global.connect = (msg, split) => {
   }
 };
 
-global.vote = (msg, split) => {
+commands.vote = (msg, split) => {
   if (split[1] === `create` || split[1] === `start`) {
     if (!(/.*?\|.*?/gm).test(split[3])) return msg.channel.send(messages.votes.invalid_usage);
     if (split[3].split(`|`).length > 10) return msg.channel.send(format(messages.votes.too_many_args, split[3].split(`|`).length - 1));
@@ -370,7 +371,7 @@ global.vote = (msg, split) => {
   }
 };
 
-global.disconnect = (msg, split) => {
+commands.disconnect = (msg, split) => {
   client.clearTimeout(timeout);
   channel = null;
   if (status) {
@@ -384,7 +385,7 @@ global.disconnect = (msg, split) => {
   msg.channel.send(format(messages.exit_vc, msg.guild.me.voiceChannel.name));
 };
 
-global.quiz = async (msg, split) => {
+commands.quiz = async (msg, split) => {
   if (split[1] === `start`) {
     if (status) return;
     if (msg.member.voiceChannel) {
@@ -469,19 +470,19 @@ function nextquiz(msg, number = 0) {
   }, 5000);
 }
 
-global.test = (msg, split) => {
+commands.test = (msg, split) => {
   msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(settings.PREFIX + `test `, ``)) + `\``);
 };
 
-global.test2 = (msg, split) => {
+commands.test2 = (msg, split) => {
   msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(settings.PREFIX + `test2 `, ``)) + `\``);
 };
 
-global.test3 = (msg, split) => {
+commands.test3 = (msg, split) => {
   msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(settings.PREFIX + `test3 `, ``)) + `\``);
 };
 
-global.testmulti = (msg, split) => {
+commands.testmulti = (msg, split) => {
   const embed = new discord.RichEmbed()
     .setTitle(`判定テスト`)
     .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
@@ -491,7 +492,7 @@ global.testmulti = (msg, split) => {
   msg.channel.send(embed);
 };
 
-global.setprefix = (msg, split) => {
+commands.setprefix = (msg, split) => {
   if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
   const set = settings;
   if (/\s/gm.test(split[1]) || split[1] === null) {
