@@ -564,3 +564,5 @@ process.on(`SIGINT`, () => {
 });
 
 client.login(Buffer.from(Buffer.from(Buffer.from(env.TOKEN, `base64`).toString(`ascii`), `base64`).toString(`ascii`), `base64`).toString(`ascii`));
+
+process.on('unhandledRejection', console.log)
