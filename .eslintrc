@@ -22,7 +22,7 @@
         "computed-property-spacing": 2,
         "consistent-this": 2,
         "constructor-super": 2,
-        "dot-location": 2,
+        "dot-location": [2, "property"],
         "eol-last": 2,
         "eqeqeq": 2,
         "func-names": 2,
@@ -34,15 +34,9 @@
             }
         ],
         "generator-star-spacing": 2,
-        "id-length": 2,
-        "id-match": [
-            2,
-            "^[a-z]+([A-Z][a-z]+)*$",
-            {
-                "properties": false
-            }
-        ],
-        "indent": 0,
+        "id-length": 0,
+        "id-match": 0,
+        "indent": [2, 2],
         "key-spacing": 2,
         "lines-around-comment": 0,
         "no-alert": 2,
@@ -66,13 +60,13 @@
         "no-var": 2,
         "object-curly-spacing": 2,
         "object-shorthand": 2,
-        "one-var": 2,
+        "one-var": [2, "never"],
         "operator-assignment": 2,
         "operator-linebreak": 2,
         "padded-blocks": 0,
         "prefer-arrow-callback": 2,
         "prefer-const": 2,
-        "prefer-reflect": 2,
+        "prefer-reflect": 0,
         "prefer-spread": 2,
         "quote-props": 2,
         "quotes": [
@@ -84,9 +78,8 @@
         "semi": 2,
         "semi-spacing": 2,
         "sort-vars": 0,
-        "space-after-keywords": 0,
+        "keyword-spacing": 2,
         "space-before-blocks": 2,
-        "space-before-keywords": 0,
         "space-in-parens": 2,
         "space-infix-ops": 2,
         "space-return-throw-case": 0,
@@ -94,6 +87,7 @@
         "spaced-comment": 0,
         "strict": 2,
         "wrap-regex": 2,
-        "no-undef": 2
+        "no-undef": 2,
+        "no-multi-spaces": 2
     }
 }

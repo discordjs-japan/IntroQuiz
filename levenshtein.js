@@ -1,3 +1,4 @@
+/* eslint-disable */
 module.exports = {
   levenshtein (s1, s2) {
     // http://kevin.vanzonneveld.net
