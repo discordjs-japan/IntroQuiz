@@ -25,7 +25,6 @@
     "ffmpeg-binaries": "^3.2.2-3",
     "node-mkdirp": "0.0.1",
     "node-opus": "^0.2.7",
-    "node-stringbuilder": "^2.2.3",
     "opusscript": "0.0.6",
     "string-format": "^2.0.0",
     "youtube-playlist-info": "^1.1.2",
