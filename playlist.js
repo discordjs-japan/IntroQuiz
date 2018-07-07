@@ -2,8 +2,8 @@ const ypi = require(`youtube-playlist-info`);
 const messages = require(`./messages.json`);
 const format = require(`string-format`);
 
-module.exports = async (message, text) => {
-  if (!text) return message.quiz.please_playlistid;
+module.exports = async (text) => {
+  if (!text) return messages.quiz.please_playlistid;
   if (text.length < 34) return messages.quiz.not_enough_count;
   if (text.length > 34) text = (text.match(/[&?]list=([^&]+)/i) || [])[1];
   if (!text) return messages.quiz.invalid_playlistid;

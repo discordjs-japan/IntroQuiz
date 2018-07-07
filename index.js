@@ -29,8 +29,7 @@ const fs = require(`fs`);
 const mkdirp = require(`node-mkdirp`);
 const format = require(`string-format`);
 const messages = require(`./messages.json`);
-// eslint-disable-next-line
-const levenshtein = require('levenshtein');
+const levenshtein = require(`levenshtein`);
 const defaultSettings = {
   "PREFIX": env.PREFIX
 };
@@ -45,7 +44,6 @@ let timeout;
 let guildSettings;
 let settings;
 let songs;
-let sigintCounts = 0;
 
 client.on(`ready`, () => {
   console.log(messages.console.login_complete);
@@ -77,9 +75,9 @@ client.on(`message`, async (msg) => {
       const cmds = Object.keys(commands);
       const commandList = cmds.map((cmd) => ({
         "command": cmd,
-        "levenshtein": levenshtein(split[0], cmd)
+        "levenshtein": levenshtein(split[0], cmd).distance
       }));
-      const similarCmds = commandList.filter((e) => e.levenshtein.distance <= 2)
+      const similarCmds = commandList.filter((e) => e.levenshtein <= 2)
         .sort((a, b) => a.no - b.no)
         .map((e) => `・\`${settings.PREFIX}${e.command}\``)
         .join(`\n`);
@@ -185,7 +183,7 @@ commands.quiz = {
       if (status) return;
       if (msg.member.voiceChannel) {
         msg.channel.send(messages.quiz.loading);
-        const list = await playlist(messages, split[2]);
+        const list = await playlist(split[2]);
         if (!Array.isArray(list)) return msg.channel.send(list);
         songs = list.map((video) => [video.resourceId.videoId, video.title]);
         msg.member.voiceChannel.join().then((con) => {
@@ -290,8 +288,8 @@ function writeSettings(settingsFile, wsettings, channel) {
 }
 
 process.on(`SIGINT`, () => {
-  setTimeout({
-    console.error("強制終了中...");
+  setTimeout(() => {
+    console.error(`強制終了中...`);
     process.exit();
   }, 5000);
   console.error(`SIGINTを検知しました。`);
@@ -300,4 +298,4 @@ process.on(`SIGINT`, () => {
 
 client.login(Buffer.from(Buffer.from(Buffer.from(env.TOKEN, `base64`).toString(`ascii`), `base64`).toString(`ascii`), `base64`).toString(`ascii`));
 
-process.on('unhandledRejection', console.error)
+process.on(`unhandledRejection`, console.error);
