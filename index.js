@@ -9,9 +9,9 @@ let status = false,
   songinfo = ``,
   connection = ``,
   dispatcher,
-  songs;
+  songs,
 
-var timeout = null;
+ timeout = null;
 
 client.on(`ready`, () => {
   console.log(`ログインが完了しました。`);
@@ -27,7 +27,7 @@ client.on(`message`, async (msg) => {
       if (command === `nextquiz`) return;
       global[command](msg, split);
     } else {
-      msg.channel.send(":x: そのようなコマンドはありません。");
+      msg.channel.send(`:x: そのようなコマンドはありません。`);
     }
   } else if (status) {
     if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
@@ -75,12 +75,14 @@ global.quiz = async (msg, split) => {
     if (msg.member.voiceChannel) {
       if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
       msg.channel.send(`再生リスト読み込み中...`);
-      if(split[2].length < 34) { return msg.channel.send(":x: 文字数が足りません(34文字以上であることが必須です)。"); }
-      split[2] = split[2].replace("https://www.youtube.com/playlist?list=", "");
-      if (~split[2].indexOf("https://www.youtube.com/watch?v=") && ~split[2].indexOf("&list=")) {
-        split[2] = split[2].replace("&list=", "");
-        split[2] = split[2].replace("https://www.youtube.com/watch?v=", "").slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, "");
+      if(split[2].length < 34) {
+ return msg.channel.send(`:x: 文字数が足りません(34文字以上であることが必須です)。`);
+}
+      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
+      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
+        split[2] = split[2].replace(`&list=`, ``);
+        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
+        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
       }
       const list = await ypi(env.APIKEY, split[2]).
         catch((error) => msg.channel.send(`再生リスト読み込みエラー：\`${error}\` (\`${split[2]})\``));
