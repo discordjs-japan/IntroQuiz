@@ -1,11 +1,7 @@
 const ypi = require(`youtube-playlist-info`);
 
 module.exports = async (messages, text) => {
-  if (!text) return msg.channel.send(messages.quiz.please_playlistid);
-  text = text.replace(/_/gm, `M`);
-  if (text.length === 0) {
-    return msg.channel.send(`読み込めません。バグの可能性が高いです。引数: ${text}`);
-  }
+  if (!text) return messages.quiz.please_playlistid;
   if (text.length < 34) return `:x: 文字数が足りません(34文字以上であることが必須です)。`;
   text = text.replace(`https://www.youtube.com/playlist?list=`, ``);
   if (text.includes(`https://www.youtube.com/watch?v=`) && text.includes(`&list=`)) {
