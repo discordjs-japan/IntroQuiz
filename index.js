@@ -30,7 +30,11 @@ const mkdirp = require(`node-mkdirp`);
 const format = require(`string-format`);
 const messages = require(`./messages.json`);
 // eslint-disable-next-line
-const levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s1.length; const s2_len = s2.length; if (s1_len === 0) {return s2_len;}if (s2_len === 0) {return s1_len;}let split = false; try{split = !(`0`)[0];}catch(e){split = true;}if (split) {s1 = s1.split(``); s2 = s2.split(``);}let v0 = new Array(s1_len + 1); let v1 = new Array(s1_len + 1); let s1_idx = 0, s2_idx = 0, cost = 0; for (s1_idx = 0; s1_idx < s1_len + 1; s1_idx++) {v0[s1_idx] = s1_idx;}let char_s1 = ``, char_s2 = ``; for (s2_idx = 1; s2_idx <= s2_len; s2_idx++) {v1[0] = s2_idx; char_s2 = s2[s2_idx - 1]; for (s1_idx = 0; s1_idx < s1_len; s1_idx++) {char_s1 = s1[s1_idx]; cost = (char_s1 == char_s2) ? 0 : 1; let m_min = v0[s1_idx + 1] + 1; const b = v1[s1_idx] + 1; const c = v0[s1_idx] + cost; if (b < m_min) {m_min = b;}if (c < m_min) {m_min = c;}v1[s1_idx + 1] = m_min;}const v_tmp = v0; v0 = v1; v1 = v_tmp;}return v0[s1_len];}
+const levenshtein = require('levenshtein');
+
+// |
+// v The Old code
+// const levenshtein = function (s1, s2) {if (s1 == s2) {return 0;}const s1_len = s1.length; const s2_len = s2.length; if (s1_len === 0) {return s2_len;}if (s2_len === 0) {return s1_len;}let split = false; try{split = !(`0`)[0];}catch(e){split = true;}if (split) {s1 = s1.split(``); s2 = s2.split(``);}let v0 = new Array(s1_len + 1); let v1 = new Array(s1_len + 1); let s1_idx = 0, s2_idx = 0, cost = 0; for (s1_idx = 0; s1_idx < s1_len + 1; s1_idx++) {v0[s1_idx] = s1_idx;}let char_s1 = ``, char_s2 = ``; for (s2_idx = 1; s2_idx <= s2_len; s2_idx++) {v1[0] = s2_idx; char_s2 = s2[s2_idx - 1]; for (s1_idx = 0; s1_idx < s1_len; s1_idx++) {char_s1 = s1[s1_idx]; cost = (char_s1 == char_s2) ? 0 : 1; let m_min = v0[s1_idx + 1] + 1; const b = v1[s1_idx] + 1; const c = v0[s1_idx] + cost; if (b < m_min) {m_min = b;}if (c < m_min) {m_min = c;}v1[s1_idx + 1] = m_min;}const v_tmp = v0; v0 = v1; v1 = v_tmp;}return v0[s1_len];}
 const defaultSettings = {
   "PREFIX": env.PREFIX
 };
@@ -83,7 +87,7 @@ client.on(`message`, async (msg) => {
         "command": cmd,
         "levenshtein": levenshtein(split[0], cmd)
       }));
-      const similarCmds = commandList.filter((e) => e.levenshtein <= 2)
+      const similarCmds = commandList.filter((e) => e.levenshtein.distance <= 2)
         .sort((a, b) => a.no - b.no)
         .map((e) => `・\`${settings.PREFIX}${e.command}\``)
         .join(`\n`);
@@ -419,34 +423,8 @@ commands.quiz = {
     if (split[1] === `start`) {
       if (status) return;
       if (msg.member.voiceChannel) {
-        if (!split[2]) return msg.channel.send(messages.quiz.please_playlistid);
-        split[2] = split[2].replace(/_/gm, `M`);
-        console.log(`Argument2: ${split[2]}`);
         msg.channel.send(messages.quiz.loading);
-        if (split[2].length === 0) {
-          return msg.channel.send(`読み込めません。バグの可能性が高いです。引数[2]: ${split[2]}`);
-        }
-        if (split[2].length < 34) {
-          return msg.channel.send(messages.quiz.not_enough_count);
-        }
-        split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
-        if (split[2].includes(`https://www.youtube.com/watch?v=`) && split[2].includes(`&list=`)) {
-          split[2] = split[2].replace(`&list=`, ``);
-          split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
-          split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
-        }
-        const list = await playlist(split[2])
-          .catch((error) => {
-            if (error.toString() === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
-              return msg.channel.send(messages.quiz.error.unavailable);
-            } else if (error.toString() === `Error: The playlist identified with the requests <code>playlistId</code> parameter cannot be found.`) {
-              return msg.channel.send(messages.quiz.error.notfound);
-            } else if (error.toString() === `Error: Bad Request`) {
-              return msg.channel.send(messages.quiz.error.badrequest);
-            } else {
-              return msg.channel.send(format(messages.quiz.error.unknown_error, error));
-            }
-          });
+        const list = await playlist(split[2], messages);
         if (!Array.isArray(list)) return msg.channel.send(list);
         songs = list.map((video) => [video.resourceId.videoId, video.title]);
         msg.member.voiceChannel.join().then((con) => {
