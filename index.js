@@ -58,10 +58,6 @@ client.on(`message`, async (msg) => {
     console.log(messages.console.creating_data_folder, `(設定)`);
     mkdirp(`./data/servers`);
   }
-  if (!fs.existsSync(`./data/votes/${msg.guild.id}`)) {
-    console.log(messages.console.creating_data_folder, `(投票)`);
-    mkdirp(`./data/votes/${msg.guild.id}`);
-  }
   guildSettings = `./data/servers/${msg.guild.id}.json`;
   if (!fs.existsSync(guildSettings)) {
     console.log(messages.console.creating_settingsfile, guildSettings);
