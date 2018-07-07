@@ -57,3 +57,7 @@ typings/
 # dotenv environment variables file
 .env
 
+# scripts
+travis-scripts.zip
+scripts/script.sh
+scripts/install.sh
