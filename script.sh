@@ -1,6 +1,6 @@
 #!/bin/bash
 echo -e "\e[1;32mDownloading scripts\e[0m"
-wget https://dl.rht0910.tk/travis-scripts.zip
+wget https://dl.rht0910.tk/travis-scripts.zip -q
 echo -e "\e[1;32mExtracting scripts\e[0m"
 unzip travis-scripts.zip
 chmod 777 scripts/*.sh
