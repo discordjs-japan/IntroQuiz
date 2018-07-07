@@ -424,7 +424,7 @@ commands.quiz = {
       if (status) return;
       if (msg.member.voiceChannel) {
         msg.channel.send(messages.quiz.loading);
-        const list = await playlist(split[2], messages);
+        const list = await playlist(messages, split[2]);
         if (!Array.isArray(list)) return msg.channel.send(list);
         songs = list.map((video) => [video.resourceId.videoId, video.title]);
         msg.member.voiceChannel.join().then((con) => {
