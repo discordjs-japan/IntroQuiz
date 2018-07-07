@@ -1,6 +1,5 @@
 language: node_js
 node_js:
   - "node"
-install:
- - "npm install -g eslint"
-script: "eslint *.js"
+install: "scripts/install.sh"
+script: "scripts/script.js"
