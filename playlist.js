@@ -3,12 +3,8 @@ const ypi = require(`youtube-playlist-info`);
 module.exports = async (messages, text) => {
   if (!text) return messages.quiz.please_playlistid;
   if (text.length < 34) return `:x: 文字数が足りません(34文字以上であることが必須です)。`;
-  text = text.replace(`https://www.youtube.com/playlist?list=`, ``);
-  if (text.includes(`https://www.youtube.com/watch?v=`) && text.includes(`&list=`)) {
-    text = text.replace(`&list=`, ``);
-    text = text.replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
-    text = text.replace(/&index=(\\.|[^&])*/gm, ``);
-  }
+  if (text.length > 34) text = (text.match(/[&?]list=([^&]+)/i) || [])[1];
+  if (!text) return `再生リストが正しくありません`;
   return await ypi(process.env.APIKEY, text)
     .catch((error) => {
       if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {
