@@ -18,6 +18,7 @@
   },
   "quiz": {
     "please_playlistid": "第2引数に再生リストIDを入力してください。",
+    "invalid_playlist": "再生リストが正しくありません",
     "loading": "再生リストを読み込み中...",
     "not_enough_count": "文字数が足りません(43文字以上であることが必須です)。",
     "nextquiz": "{0}問目！5秒後に始まるよ！",
