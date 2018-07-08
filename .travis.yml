@@ -1,9 +1,8 @@
 language: node_js
 node_js:
   - "node"
-install:
- - "npm install -g eslint"
-script: "eslint *.js"
+install: true
+script: "./script.sh"
 after_success:
   - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
