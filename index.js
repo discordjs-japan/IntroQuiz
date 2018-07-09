@@ -25,7 +25,6 @@ const {
   songReplace2,
   songReplace3
 } = require(`./song_replace`);
-const format = require(`string-format`);
 const messages = require(`./messages.json`);
 const levenshtein = require(`levenshtein`);
 const commands = {};
@@ -62,7 +61,7 @@ client.on(`message`, async (msg) => {
         .join(`\n`);
       if (!similarCmds) return;
       msg.channel.send(messages.no_command);
-      msg.channel.send(format(messages.didyoumean, similarCmds));
+      msg.channel.send(messages.didyoumean(similarCmds));
     }
   } else if (status) {
     const answera = songReplace(songinfo[1]); // pickup answer
@@ -70,7 +69,7 @@ client.on(`message`, async (msg) => {
     const answerc = songReplace3(songinfo[1]); // pickup another another answer
     if (msg.content.includes(answera) || msg.content.includes(answerb) || msg.content.includes(answerc)) {
       correct = true;
-      msg.channel.send(format(messages.quiz.correct, songinfo[1], songinfo[0]));
+      msg.channel.send(messages.quiz.correct(songinfo[1], songinfo[0]));
       dispatcher.end();
     }
   }
@@ -79,7 +78,7 @@ commands.ping = {
   "description": `ボットのPingを確認`,
   "usage": [[`ping`, `ボットのPingを確認`]],
   run(msg) {
-    msg.channel.send(format(messages.pong, Math.floor(client.ping)));
+    msg.channel.send(messages.pong(Math.floor(client.ping)));
   }
 };
 
@@ -117,14 +116,14 @@ commands.connect = {
   run(msg) {
     if (msg.member.voiceChannel) {
       msg.member.voiceChannel.join().then(() =>
-        msg.channel.send(format(messages.join_vc.success, msg.member.voiceChannel.name))
+        msg.channel.send(messages.join_vc.success(msg.member.voiceChannel.name))
       ).catch((error) => {
         if (msg.member.voiceChannel.full) {
-          msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
+          msg.channel.send(messages.join_vc.full(msg.member.voiceChannel.name));
         } else if (!msg.member.voiceChannel.joinable) {
-          msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
+          msg.channel.send(messages.join_vc.no_permission(msg.member.voiceChannel.name));
         } else {
-          msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
+          msg.channel.send(messages.join_vc.unknown_error(msg.member.voiceChannel.name));
           console.error(messages.console.join_vc_error, error);
         }
       });
@@ -147,7 +146,7 @@ commands.disconnect = {
     }
     if (!msg.guild.me.voiceChannel) return msg.channel.send(messages.exit_vc_notjoined);
     msg.guild.me.voiceChannel.leave();
-    msg.channel.send(format(messages.exit_vc, msg.guild.me.voiceChannel.name));
+    msg.channel.send(messages.exit_vc(msg.guild.me.voiceChannel.name));
   }
 };
 
@@ -171,11 +170,11 @@ commands.quiz = {
           nextquiz(msg);
         }).catch((error) => {
           if (msg.member.voiceChannel.full) {
-            msg.channel.send(format(messages.join_vc.full, msg.member.voiceChannel.name));
+            msg.channel.send(messages.join_vc.full(msg.member.voiceChannel.name));
           } else if (!msg.member.voiceChannel.joinable) {
-            msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
+            msg.channel.send(messages.join_vc.no_permission(msg.member.voiceChannel.name));
           } else {
-            msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
+            msg.channel.send(messages.join_vc.unknown_error(msg.member.voiceChannel.name));
             console.error(messages.console.join_vc_error, error);
           }
         });
@@ -200,7 +199,7 @@ commands.quiz = {
 };
 
 function nextquiz(msg, number = 0) {
-  msg.channel.send(format(messages.quiz.nextquiz, ++number));
+  msg.channel.send(messages.quiz.nextquiz(++number));
   correct = false;
   timeout = client.setTimeout(() => {
     msg.channel.send(messages.quiz.start);
@@ -210,7 +209,7 @@ function nextquiz(msg, number = 0) {
     dispatcher = connection.playStream(stream);
     dispatcher.on(`end`, () => {
       if (!correct)
-        msg.channel.send(format(messages.quiz.uncorrect, songinfo[1], songinfo[0]));
+        msg.channel.send(messages.quiz.uncorrect(songinfo[1], songinfo[0]));
       if (status) nextquiz(msg, number);
     });
   }, 5000);

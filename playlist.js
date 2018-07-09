@@ -1,6 +1,5 @@
 const ypi = require(`youtube-playlist-info`);
 const messages = require(`./messages.json`);
-const format = require(`string-format`);
 
 module.exports = async (text) => {
   if (!text) return messages.quiz.please_playlist;
@@ -16,7 +15,7 @@ module.exports = async (text) => {
       } else if (error === `Error: Bad Request`) {
         return messages.quiz.error.badrequest;
       } else {
-        return format(messages.quiz.error.unknown_error, error);
+        return messages.quiz.error.unknown_error(error);
       }
     });
 };
