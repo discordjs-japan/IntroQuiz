@@ -6,7 +6,7 @@
     "join_vc_error": "ボイスチャンネルに接続中に不明なエラーが発生しました: %s"
   },
   "help": {
-    "commands": "コマンド一覧 (現在のプレフィックス: {0})",
+    "commands": "コマンド一覧",
     "helpcommand": "ヘルプコマンド(help)"
   },
   "join_vc": {

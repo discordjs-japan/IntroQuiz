@@ -25,14 +25,9 @@ const {
   songReplace2,
   songReplace3
 } = require(`./song_replace`);
-const fs = require(`fs`);
-const mkdirp = require(`node-mkdirp`);
 const format = require(`string-format`);
 const messages = require(`./messages.json`);
 const levenshtein = require(`levenshtein`);
-const defaultSettings = {
-  "PREFIX": env.PREFIX
-};
 const commands = {};
 
 let status = false;
@@ -41,8 +36,6 @@ let songinfo = ``;
 let connection = ``;
 let dispatcher;
 let timeout;
-let guildSettings;
-let settings;
 let songs;
 
 client.on(`ready`, () => {
@@ -52,23 +45,9 @@ client.on(`ready`, () => {
 client.on(`message`, async (msg) => {
   if (!msg.guild) return;
   if (msg.author.bot || msg.system) return;
-  if (!fs.existsSync(`./data/servers`)) {
-    console.log(messages.console.creating_data_folder, `(設定)`);
-    mkdirp(`./data/servers`);
-  }
-  guildSettings = `./data/servers/${msg.guild.id}.json`;
-  if (!fs.existsSync(guildSettings)) {
-    console.log(messages.console.creating_settingsfile, guildSettings);
-    fs.writeFileSync(guildSettings, JSON.stringify(defaultSettings, null, 4), `utf8`, (err) => {
-      if (err) {
-        console.error(err);
-      }
-    });
-  }
-  settings = require(guildSettings);
-  if (msg.content.startsWith(settings.PREFIX)) {
+  if (msg.content.startsWith(env.PREFIX)) {
     console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`);
-    const split = msg.content.replace(settings.PREFIX, ``).split(` `);
+    const split = msg.content.replace(env.PREFIX, ``).split(` `);
     const command = split[0];
     if (commands[command]) commands[command].run(msg, split);
     else {
@@ -79,7 +58,7 @@ client.on(`message`, async (msg) => {
       }));
       const similarCmds = commandList.filter((e) => e.levenshtein <= 2)
         .sort((a, b) => a.no - b.no)
-        .map((e) => `・\`${settings.PREFIX}${e.command}\``)
+        .map((e) => `・\`${env.PREFIX}${e.command}\``)
         .join(`\n`);
       if (!similarCmds) return;
       msg.channel.send(messages.no_command);
@@ -239,19 +218,19 @@ function nextquiz(msg, number = 0) {
 
 commands.test = {
   run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(settings.PREFIX + `test `, ``)) + `\``);
+    msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``);
   }
 };
 
 commands.test2 = {
   run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(settings.PREFIX + `test2 `, ``)) + `\``);
+    msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``);
   }
 };
 
 commands.test3 = {
   run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(settings.PREFIX + `test3 `, ``)) + `\``);
+    msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``);
   }
 };
 
@@ -259,33 +238,13 @@ commands.testmulti = {
   run(msg) {
     const embed = new discord.RichEmbed()
       .setTitle(`判定テスト`)
-      .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
-      .addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
-      .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(settings.PREFIX + `testmulti `, ``)) + `\``)
-      .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(settings.PREFIX + `testmulti `, ``) + `\``);
+      .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
+      .addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
+      .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
+      .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``);
     msg.channel.send(embed);
   }
 };
-
-commands.setprefix = {
-  "description": `プレフィックスを設定`,
-  "usage": [[`setprefix <プレフィックス>`, `プレフィックスを設定`]],
-  run(msg, split) {
-    if (!msg.member.hasPermission(8)) return msg.channel.send(messages.no_permission);
-    if (/\s/gm.test(split[1]) || split[1] === null) return msg.channel.send(messages.cantsave_nospace);
-    settings.PREFIX = split[1];
-    writeSettings(guildSettings, settings, msg.channel);
-  }
-};
-
-function writeSettings(settingsFile, wsettings, channel) {
-  fs.writeFileSync(settingsFile, JSON.stringify(wsettings, null, 4), `utf8`, (err) => {
-    if (err) {
-      console.error(err);
-    }
-  });
-  channel.send(messages.saved_settings);
-}
 
 process.on(`SIGINT`, () => {
   setTimeout(() => {
