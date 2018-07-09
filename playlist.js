@@ -3,10 +3,10 @@ const messages = require(`./messages.json`);
 const format = require(`string-format`);
 
 module.exports = async (text) => {
-  if (!text) return messages.quiz.please_playlistid;
-  if (text.length < 34) return messages.quiz.not_enough_count;
+  if (!text) return messages.quiz.please_playlist;
+  if (text.length < 34) text = null;
   if (text.length > 34) text = (text.match(/[&?]list=([^&]+)/i) || [])[1];
-  if (!text) return messages.quiz.invalid_playlistid;
+  if (!text) return messages.quiz.invalid_playlist;
   return await ypi(process.env.APIKEY, text)
     .catch((error) => {
       if (error === `Error: The request is not properly authorized to retrieve the specified playlist.`) {

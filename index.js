@@ -39,7 +39,7 @@ let timeout;
 let songs;
 
 client.on(`ready`, () => {
-  console.log(messages.console.login_complete);
+  console.log(messages.console.login_complete, client.user.tag);
 });
 
 client.on(`message`, async (msg) => {
@@ -70,7 +70,7 @@ client.on(`message`, async (msg) => {
     const answerc = songReplace3(songinfo[1]); // pickup another another answer
     if (msg.content.includes(answera) || msg.content.includes(answerb) || msg.content.includes(answerc)) {
       correct = true;
-      msg.channel.send(format(messages.correct, songinfo[1], songinfo[0]));
+      msg.channel.send(format(messages.quiz.correct, songinfo[1], songinfo[0]));
       dispatcher.end();
     }
   }
@@ -99,7 +99,7 @@ commands.help = {
       msg.channel.send(embed);
     } else {
       const embed = new discord.RichEmbed()
-        .setTitle(`コマンド一覧`)
+        .setTitle(messages.help.commands)
         .setTimestamp();
       Object.keys(commands).forEach((cmd) => {
         const command = commands[cmd];
@@ -125,7 +125,7 @@ commands.connect = {
           msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
         } else {
           msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
-          console.error(format(messages.console.join_vc_error, error));
+          console.error(messages.console.join_vc_error, error);
         }
       });
     } else {
@@ -176,7 +176,7 @@ commands.quiz = {
             msg.channel.send(format(messages.join_vc.no_permission, msg.member.voiceChannel.name));
           } else {
             msg.channel.send(format(messages.join_vc.unknown_error, msg.member.voiceChannel.name));
-            console.error(format(messages.console.join_vc_error, error));
+            console.error(messages.console.join_vc_error, error);
           }
         });
       } else {
