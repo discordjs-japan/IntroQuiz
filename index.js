@@ -12,6 +12,13 @@
 // GitLab Repository: https://gitlab.com/DJS-JPN/IntroQuiz
 //
 
+let status = false,
+  correct = false,
+  songinfo = ``,
+  connection = ``,
+  dispatcher,
+  songs,
+  timeout = null;
 /* Clear cache */
 delete require.cache[require.resolve(`./messages.json`)]
 
@@ -28,14 +35,6 @@ const {
 const messages = require(`./messages.json`)
 const levenshtein = require(`levenshtein`)
 const commands = {}
-
-let status = false
-let correct = false
-let songinfo = ``
-let connection = ``
-let dispatcher
-let timeout
-let songs
 
 client.on(`ready`, () => {
   console.log(messages.console.login_complete, client.user.tag)
@@ -115,9 +114,25 @@ commands.connect = {
   "usage": [[`connect`, `ボイスチャンネルに接続`]],
   run(msg) {
     if (msg.member.voiceChannel) {
-      msg.member.voiceChannel.join().then(() =>
-        msg.channel.send(messages.join_vc.success(msg.member.voiceChannel.name))
-      ).catch(error => {
+      if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
+      msg.channel.send(`再生リスト読み込み中...`);
+      if(split[2].length < 34) {
+ return msg.channel.send(`:x: 文字数が足りません(34文字以上であることが必須です)。`);
+}
+      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
+      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
+        split[2] = split[2].replace(`&list=`, ``);
+        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
+        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
+      }
+      const list = await ypi(env.APIKEY, split[2]).
+        catch((error) => msg.channel.send(`再生リスト読み込みエラー：\`${error}\` (\`${split[2]})\``));
+      songs = list.map((video) => [video.resourceId.videoId, video.title]);
+      msg.member.voiceChannel.join().then((con) => {
+        connection = con;
+        status = true;
+        nextquiz(msg);
+      }).catch((error) => {
         if (msg.member.voiceChannel.full) {
           msg.channel.send(messages.join_vc.full(msg.member.voiceChannel.name))
         } else if (!msg.member.voiceChannel.joinable) {
