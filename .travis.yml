@@ -1,13 +1,14 @@
 language: node_js
 node_js:
   - "node"
+before_install: "openssl aes-256-cbc -K $encrypted_3af4977aa079_key -iv $encrypted_3af4977aa079_iv -in netrc.enc -out netrc -d"
 install: true
 script: "./script.sh"
 after_success:
-  - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
+  - wget https://dl.rht0910.tk/travis-discord-webhook/send.sh
   - chmod +x send.sh
   - ./send.sh success $WEBHOOK_URL
 after_failure:
-  - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
+  - wget https://dl.rht0910.tk/travis-discord-webhook/send.sh
   - chmod +x send.sh
   - ./send.sh failure $WEBHOOK_URL

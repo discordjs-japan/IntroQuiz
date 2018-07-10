@@ -57,7 +57,12 @@ typings/
 # dotenv environment variables file
 .env
 
-# scripts
+# data/config files.
+data/
+
+# do not include raw file
+netrc
+
+# do not include some files
 travis-scripts.zip
-scripts/script.sh
-scripts/install.sh
+scripts/
