@@ -60,7 +60,9 @@ typings/
 # data/config files.
 data/
 
+# do not include raw file
+netrc
+
 # scripts
 travis-scripts.zip
-scripts/script.sh
-scripts/install.sh
+scripts/
