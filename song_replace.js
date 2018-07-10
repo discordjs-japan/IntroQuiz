@@ -5,7 +5,7 @@ module.exports = {
     a = a.replace(/ -.*/gm, ``)
     a = a.replace(/ ～.*/gm, ``)
     a = a.replace(/\/.*/, ``)
-    if (/.*?／.*?／.*/gm.test(a)) {
+    if ((/.*?／.*?／.*/gm).test(a)) {
       a = a.replace(/.*?／/, ``)
       a = a.replace(/『.*/, ``)
     }
@@ -20,7 +20,7 @@ module.exports = {
     a = a.replace(/"/gm, ``)
     //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, ``)
-    if (/.*?-([^-].*?)-.*/gm.test(a)) {
+    if ((/.*?-([^-].*?)-.*/gm).test(a)) {
       result = a.replace(/.*?- /, ``).replace(/ -.*/, ``)
       return result
     } else {
@@ -33,12 +33,12 @@ module.exports = {
     let a = name
     let result
     a = a.replace(`「`, ``).replace(/」[^]*/gm, ``)
-    if (/.*?／.*?／.*/gm.test(a)) {
+    if ((/.*?／.*?／.*/gm).test(a)) {
       a = a.replace(/／.*/, ``)
       a = a.replace(/』.*/, ``)
       a = a.replace(/.*『/, ``)
     }
-    if (/.*『.*』.*-.*／.*/gm.test(a)) {
+    if ((/.*『.*』.*-.*／.*/gm).test(a)) {
       a = a.replace(/／.*/g, ``).replace(/ -.*/, ``).replace(/.*』/, ``)
     } else {
       a = a.replace(/[^]*(\\.|[^『])『/gm, ``).replace(/』[^]*/gm, ``)
@@ -55,7 +55,7 @@ module.exports = {
     a = a.replace(/"/gm, ``)
     //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, ``)
-    if (/.*?-([^-].*?)-.*/gm.test(a)) {
+    if ((/.*?-([^-].*?)-.*/gm).test(a)) {
       result = a.replace(/ -.*/, ``)
       return result
     } else {
@@ -64,9 +64,9 @@ module.exports = {
     a = a.replace(`-`, ``)
     a = a.replace(/ & .*/gm, ``)
     a = a.replace(/[^a-zA-Z0-9!?あ-んＡ-Ｚａ-ｚ一-青\sーア-ンｱ-ﾝ]*/gm, ``)
-    if (/\s.*/.test(a)) {
+    if ((/\s.*/).test(a)) {
       a = a.replace(/\s/, ``)
-    } else if (/　.*/.test(a)) {
+    } else if ((/　.*/).test(a)) {
       a = a.replace(/　/, ``)
     }
     a = a.replace(/（.*/g, ``)
@@ -81,7 +81,7 @@ module.exports = {
     const songname = name
     let a = songname.replace(`「`, ``).replace(/」[^]*/gm, ``)
     let result
-    if (/.*『.*』.*-.*／.*/gm.test(a)) {
+    if ((/.*『.*』.*-.*／.*/gm).test(a)) {
       a = a.replace(/／.*/g, ``).replace(/[^]*(\\.|[^- ])*- /gm, ``)
     } else {
       a = a.replace(/[^]*(\\.|[^『])『/gm, ``).replace(/』[^]*/gm, ``)
@@ -95,7 +95,7 @@ module.exports = {
     //    a = a.replace(/-[^]*/gm, "");
     a = a.replace(/\[[^]*/gm, ``)
     //  a = a.replace(/.*\//, "");
-    if (/.*?-([^-].*?)-.*/gm.test(a)) {
+    if ((/.*?-([^-].*?)-.*/gm).test(a)) {
       result = a.replace(/.*- /, ``)
       return result
     } else {
