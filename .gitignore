@@ -56,14 +56,3 @@ typings/
 
 # dotenv environment variables file
 .env
-<<<<<<< Updated upstream
-
-# data/config files.
-data/
-
-# scripts
-travis-scripts.zip
-scripts/script.sh
-scripts/install.sh
-=======
->>>>>>> Stashed changes
