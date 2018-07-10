@@ -1,6 +1,7 @@
 language: node_js
 node_js:
   - "node"
+<<<<<<< Updated upstream
 install: true
 script: "./script.sh"
 after_success:
@@ -11,3 +12,10 @@ after_failure:
   - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
   - ./send.sh failure $WEBHOOK_URL
+=======
+install: npm install discord.js eslint
+script: node travis/lint.js
+cache:
+  directories:
+    - "node_modules"
+>>>>>>> Stashed changes
