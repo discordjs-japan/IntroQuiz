@@ -18,10 +18,8 @@ delete require.cache[require.resolve(`./messages`)]
 const {parsed: env} = require(`dotenv-safe`).config()
 const discord = require(`discord.js`)
 const client = new discord.Client()
-const ytdl = require(`ytdl-core`)
 const playlist = require(`./playlist`)
 const {
-  songReplace,
   songReplace1,
   songReplace2,
   songReplace3,
@@ -29,14 +27,8 @@ const {
 const levenshtein = require(`fast-levenshtein`)
 const _ = require(`./messages`)
 const commands = {}
-
-let status = false
-let correct = false
-let songinfo = ``
-let connection = ``
-let dispatcher
-let timeout
-let songs
+const Game = require(`./Game`)
+const games = new Map()
 
 client.on(`ready`, () => {
   console.log(_.CONSOLE.LOGIN_COMPLETE(client.user.tag))
@@ -63,15 +55,14 @@ client.on(`message`, async msg => {
       msg.channel.send(_.NO_COMMAND)
       if (similarCmds) msg.channel.send(_.DIDYOUMEAN(similarCmds))
     }
-  } else if (status) {
-    const answers = songReplace(songinfo[1])
-    if (answers.some(answer => msg.content.includes(answer))) {
-      correct = true
-      msg.channel.send(_.QUIZ.CORRECT(songinfo[1], songinfo[0]))
-      dispatcher.end()
-    }
+  } else if (games.has(msg.guild.id)) {
+    const game = games.get(msg.guild.id)
+    if (game.tc.id !== msg.channel.id) return
+    if (!game.status || game.correct) return
+    game.answer(msg.content)
   }
 })
+
 commands.ping = {
   description: `ボットのPingを確認`,
   usage: [[`ping`, `ボットのPingを確認`]],
@@ -116,61 +107,28 @@ commands.quiz = {
   ],
   async run(msg, split) {
     if (split[1] === `start`) {
-      if (status) return
-      if (msg.member.voiceChannel) {
-        msg.channel.send(_.QUIZ.LOADING)
-        const list = await playlist(split[2])
-        if (!Array.isArray(list)) return msg.channel.send(list)
-        songs = list.map(video => [video.resourceId.videoId, video.title])
-        msg.member.voiceChannel.join().then(con => {
-          connection = con
-          status = true
-          nextquiz(msg)
-        }).catch(error => {
-          if (msg.member.voiceChannel.full) {
-            msg.channel.send(_.JOIN_VC.FULL(msg.member.voiceChannel.name))
-          } else if (!msg.member.voiceChannel.joinable) {
-            msg.channel.send(_.JOIN_VC.NO_PERMISSION(msg.member.voiceChannel.name))
-          } else {
-            msg.channel.send(_.JOIN_VC.UNKNOWN_ERROR(msg.member.voiceChannel.name))
-            console.error(_.CONSOLE.JOIN_VC_ERROR(error))
-          }
-        })
-      } else {
-        msg.channel.send(_.JOIN_VC.TRYAGAIN)
-      }
+      let game = games.get(msg.guild.id)
+      if (!game) {
+        if (!msg.member.voiceChannel)
+          return msg.channel.send(_.JOIN_VC.TRYAGAIN)
+        game = new Game(client, msg.channel, msg.member.voiceChannel)
+        games.set(msg.guild.id, game)
+      } else if (game.status) return
+      if (!msg.member.voiceChannel) return msg.channel.send(_.JOIN_VC.TRYAGAIN)
+      msg.channel.send(_.QUIZ.LOADING)
+      const list = await playlist(split[2])
+      if (!Array.isArray(list)) return msg.channel.send(list)
+      const songs = list.map(video => [video.resourceId.videoId, video.title])
+      game.start(songs)
     } else if (split[1] === `end` || split[1] === `stop`) {
-      if (status) {
-        client.clearTimeout(timeout)
-        status = false
-        correct = false
-        dispatcher.end()
-        connection.disconnect()
-        msg.channel.send(_.QUIZ.STOP)
-      } else {
-        msg.channel.send(_.QUIZ.NOT_STARTED)
-      }
-    } else {
-      msg.channel.send(_.WRONG_ARGS)
-    }
+      const game = games.get(msg.guild.id)
+      if (!game || !game.status)
+        return msg.channel.send(_.QUIZ.NOT_STARTED)
+      game.end()
+      games.delete(msg.guild.id)
+      msg.channel.send(_.QUIZ.STOP)
+    } else msg.channel.send(_.WRONG_ARGS)
   },
-}
-
-function nextquiz(msg, number = 0) {
-  msg.channel.send(_.QUIZ.NEXTQUIZ(++number))
-  correct = false
-  timeout = client.setTimeout(() => {
-    msg.channel.send(_.QUIZ.START)
-    songinfo = songs[Math.floor(Math.random() * songs.length)]
-    console.log(songinfo)
-    const stream = ytdl(songinfo[0], {filter: `audioonly`})
-    dispatcher = connection.playStream(stream)
-    dispatcher.on(`end`, () => {
-      if (!correct)
-        msg.channel.send(_.QUIZ.UNCORRECT(songinfo[1], songinfo[0]))
-      if (status) nextquiz(msg, number)
-    })
-  }, 5000)
 }
 
 commands.test = {
