@@ -1,5 +1,12 @@
 module.exports = {
   songReplace(name) {
+    return [
+      this.songReplace1(name),
+      this.songReplace2(name),
+      this.songReplace3(name),
+    ]
+  },
+  songReplace1(name) {
     let a = name.replace(`「`, ``).replace(/」[^]*/gm, ``)
     let result
     a = a.replace(/ -.*/gm, ``)

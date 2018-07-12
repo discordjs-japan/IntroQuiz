@@ -22,6 +22,7 @@ const ytdl = require(`ytdl-core`)
 const playlist = require(`./playlist`)
 const {
   songReplace,
+  songReplace1,
   songReplace2,
   songReplace3,
 } = require(`./song_replace`)
@@ -63,10 +64,8 @@ client.on(`message`, async msg => {
       if (similarCmds) msg.channel.send(_.DIDYOUMEAN(similarCmds))
     }
   } else if (status) {
-    const answera = songReplace(songinfo[1]) // pickup answer
-    const answerb = songReplace2(songinfo[1]) // pickup another answer
-    const answerc = songReplace3(songinfo[1]) // pickup another another answer
-    if (msg.content.includes(answera) || msg.content.includes(answerb) || msg.content.includes(answerc)) {
+    const answers = songReplace(songinfo[1])
+    if (answers.some(answer => msg.content.includes(answer))) {
       correct = true
       msg.channel.send(_.QUIZ.CORRECT(songinfo[1], songinfo[0]))
       dispatcher.end()
@@ -176,7 +175,7 @@ function nextquiz(msg, number = 0) {
 
 commands.test = {
   run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``)
+    msg.channel.send(`Extracted name: \`` + songReplace1(msg.content.replace(env.PREFIX + `test `, ``)) + `\``)
   },
 }
 
@@ -196,7 +195,7 @@ commands.testmulti = {
   run(msg) {
     const embed = new discord.RichEmbed()
       .setTitle(`判定テスト`)
-      .addField(`1つ目の答え`, `\`` + songReplace(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
+      .addField(`1つ目の答え`, `\`` + songReplace1(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
       .addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
       .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
       .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``)
