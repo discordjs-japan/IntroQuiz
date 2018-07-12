@@ -25,7 +25,7 @@ const {
   songReplace2,
   songReplace3,
 } = require(`./song_replace`)
-const messages = require(`./messages.json`)
+const _ = require(`./messages.json`)
 const levenshtein = require(`levenshtein`)
 const commands = {}
 
@@ -38,7 +38,7 @@ let timeout
 let songs
 
 client.on(`ready`, () => {
-  console.log(messages.CONSOLE.LOGIN_COMPLETE(client.user.tag))
+  console.log(_.CONSOLE.LOGIN_COMPLETE(client.user.tag))
 })
 
 client.on(`message`, async msg => {
@@ -60,8 +60,8 @@ client.on(`message`, async msg => {
         .map(e => `・\`${env.PREFIX}${e.command}\``)
         .join(`\n`)
       if (!similarCmds) return
-      msg.channel.send(messages.NO_COMMAND)
-      msg.channel.send(messages.DIDYOUMEAN(similarCmds))
+      msg.channel.send(_.NO_COMMAND)
+      msg.channel.send(_.DIDYOUMEAN(similarCmds))
     }
   } else if (status) {
     const answera = songReplace(songinfo[1]) // pickup answer
@@ -69,7 +69,7 @@ client.on(`message`, async msg => {
     const answerc = songReplace3(songinfo[1]) // pickup another another answer
     if (msg.content.includes(answera) || msg.content.includes(answerb) || msg.content.includes(answerc)) {
       correct = true
-      msg.channel.send(messages.QUIZ.CORRECT(songinfo[1], songinfo[0]))
+      msg.channel.send(_.QUIZ.CORRECT(songinfo[1], songinfo[0]))
       dispatcher.end()
     }
   }
@@ -78,7 +78,7 @@ commands.ping = {
   description: `ボットのPingを確認`,
   usage: [[`ping`, `ボットのPingを確認`]],
   run(msg) {
-    msg.channel.send(messages.PONG(Math.floor(client.ping)))
+    msg.channel.send(_.PONG(Math.floor(client.ping)))
   },
 }
 
@@ -89,7 +89,7 @@ commands.help = {
     if (split[1]) {
       const cmd = commands[split[1]]
       if (!cmd || !cmd.description && !cmd.usage)
-        return msg.channel.send(messages.NO_COMMAND)
+        return msg.channel.send(_.NO_COMMAND)
       const embed = new discord.RichEmbed()
         .setTitle(split[1])
         .setTimestamp()
@@ -98,7 +98,7 @@ commands.help = {
       msg.channel.send(embed)
     } else {
       const embed = new discord.RichEmbed()
-        .setTitle(messages.HELP.COMMANDS)
+        .setTitle(_.HELP.COMMANDS)
         .setTimestamp()
       Object.keys(commands).forEach(cmd => {
         const command = commands[cmd]
@@ -120,7 +120,7 @@ commands.quiz = {
     if (split[1] === `start`) {
       if (status) return
       if (msg.member.voiceChannel) {
-        msg.channel.send(messages.QUIZ.LOADING)
+        msg.channel.send(_.QUIZ.LOADING)
         const list = await playlist(split[2])
         if (!Array.isArray(list)) return msg.channel.send(list)
         songs = list.map(video => [video.resourceId.videoId, video.title])
@@ -130,16 +130,16 @@ commands.quiz = {
           nextquiz(msg)
         }).catch(error => {
           if (msg.member.voiceChannel.full) {
-            msg.channel.send(messages.JOIN_VC.FULL(msg.member.voiceChannel.name))
+            msg.channel.send(_.JOIN_VC.FULL(msg.member.voiceChannel.name))
           } else if (!msg.member.voiceChannel.joinable) {
-            msg.channel.send(messages.JOIN_VC.NO_PERMISSION(msg.member.voiceChannel.name))
+            msg.channel.send(_.JOIN_VC.NO_PERMISSION(msg.member.voiceChannel.name))
           } else {
-            msg.channel.send(messages.JOIN_VC.UNKNOWN_ERROR(msg.member.voiceChannel.name))
-            console.error(messages.CONSOLE.JOIN_VC_ERROR(error))
+            msg.channel.send(_.JOIN_VC.UNKNOWN_ERROR(msg.member.voiceChannel.name))
+            console.error(_.CONSOLE.JOIN_VC_ERROR(error))
           }
         })
       } else {
-        msg.channel.send(messages.JOIN_VC.TRYAGAIN)
+        msg.channel.send(_.JOIN_VC.TRYAGAIN)
       }
     } else if (split[1] === `end` || split[1] === `stop`) {
       if (status) {
@@ -148,28 +148,28 @@ commands.quiz = {
         correct = false
         dispatcher.end()
         connection.disconnect()
-        msg.channel.send(messages.QUIZ.STOP)
+        msg.channel.send(_.QUIZ.STOP)
       } else {
-        msg.channel.send(messages.QUIZ.NOT_STARTED)
+        msg.channel.send(_.QUIZ.NOT_STARTED)
       }
     } else {
-      msg.channel.send(messages.WRONG_ARGS)
+      msg.channel.send(_.WRONG_ARGS)
     }
   },
 }
 
 function nextquiz(msg, number = 0) {
-  msg.channel.send(messages.QUIZ.NEXTQUIZ(++number))
+  msg.channel.send(_.QUIZ.NEXTQUIZ(++number))
   correct = false
   timeout = client.setTimeout(() => {
-    msg.channel.send(messages.QUIZ.START)
+    msg.channel.send(_.QUIZ.START)
     songinfo = songs[Math.floor(Math.random() * songs.length)]
     console.log(songinfo)
     const stream = ytdl(songinfo[0], {filter: `audioonly`})
     dispatcher = connection.playStream(stream)
     dispatcher.on(`end`, () => {
       if (!correct)
-        msg.channel.send(messages.QUIZ.UNCORRECT(songinfo[1], songinfo[0]))
+        msg.channel.send(_.QUIZ.UNCORRECT(songinfo[1], songinfo[0]))
       if (status) nextquiz(msg, number)
     })
   }, 5000)
