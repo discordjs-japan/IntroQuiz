@@ -1,8 +1,8 @@
 function songReplace(name) {
   return [
-    this.songReplace1(name),
-    this.songReplace2(name),
-    this.songReplace3(name),
+    songReplace1(name),
+    songReplace2(name),
+    songReplace3(name),
   ]
 }
 
