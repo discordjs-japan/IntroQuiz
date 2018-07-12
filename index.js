@@ -38,7 +38,7 @@ let timeout
 let songs
 
 client.on(`ready`, () => {
-  console.log(messages.console.login_complete, client.user.tag)
+  console.log(messages.console.login_complete(client.user.tag))
 })
 
 client.on(`message`, async msg => {
@@ -135,7 +135,7 @@ commands.quiz = {
             msg.channel.send(messages.join_vc.no_permission(msg.member.voiceChannel.name))
           } else {
             msg.channel.send(messages.join_vc.unknown_error(msg.member.voiceChannel.name))
-            console.error(messages.console.join_vc_error, error)
+            console.error(messages.console.join_vc_error(error))
           }
         })
       } else {
