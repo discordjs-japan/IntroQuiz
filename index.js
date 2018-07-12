@@ -25,7 +25,7 @@ const {
   songReplace2,
   songReplace3,
 } = require(`./song_replace`)
-const levenshtein = require(`levenshtein`)
+const levenshtein = require(`fast-levenshtein`)
 const _ = require(`./messages`)
 const commands = {}
 
@@ -53,15 +53,14 @@ client.on(`message`, async msg => {
       const cmds = Object.keys(commands)
       const commandList = cmds.map(cmd => ({
         command: cmd,
-        levenshtein: levenshtein(split[0], cmd).distance,
+        levenshtein: levenshtein.get(split[0], cmd),
       }))
       const similarCmds = commandList.filter(e => e.levenshtein <= 2)
         .sort((a, b) => a.no - b.no)
         .map(e => `・\`${env.PREFIX}${e.command}\``)
         .join(`\n`)
-      if (!similarCmds) return
       msg.channel.send(_.NO_COMMAND)
-      msg.channel.send(_.DIDYOUMEAN(similarCmds))
+      if (similarCmds) msg.channel.send(_.DIDYOUMEAN(similarCmds))
     }
   } else if (status) {
     const answera = songReplace(songinfo[1]) // pickup answer
