@@ -112,5 +112,5 @@ module.exports = {
     }
     result = a.replace(/（.*/gm, ``)
     return result
-  }
+  },
 }

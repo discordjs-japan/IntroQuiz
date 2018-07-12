@@ -13,21 +13,21 @@ if (report.errorCount || report.warningCount) {
   const all = `${report.errorCount + report.warningCount} problems`
   const counts = `(${report.errorCount} errors, ${report.warningCount} warnings)`
   const embed = {
-    "description": `:${hasError ? `x` : `heavy_multiplication_x`}: ${all} ${counts}`,
-    "color": hasError ? 0xFF0000 : 0xFFFF00,
-    "author": {
-      "name": `ESLint`,
-      "icon_url": `http://eslint.org/img/favicon.512x512.png`
+    description: `:${hasError ? `x` : `heavy_multiplication_x`}: ${all} ${counts}`,
+    color: hasError ? 0xFF0000 : 0xFFFF00,
+    author: {
+      name: `ESLint`,
+      icon_url: `http://eslint.org/img/favicon.512x512.png`,
     },
-    "fields": files.map(file => ({
-      "name": path.relative(path.join(__dirname, `..`), file.filePath),
-      "value": codeblock(file.messages.map(({
-        "line": l, "column": c, severity, message, "ruleId": id
-      }) => `${l}:${c} ${str(severity)} ${message} ${id}`).join(`\n`))
-    }))
+    fields: files.map(file => ({
+      name: path.relative(path.join(__dirname, `..`), file.filePath),
+      value: codeblock(file.messages.map(({
+        line: l, column: c, severity, message, ruleId: id,
+      }) => `${l}:${c} ${str(severity)} ${message} ${id}`).join(`\n`)),
+    })),
   }
   console.log(embed)
-  hook.send({"embeds": [embed]})
+  hook.send({embeds: [embed]})
 }
 
 function str(severity) {

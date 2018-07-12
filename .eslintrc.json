@@ -19,10 +19,10 @@
     "block-scoped-var": 2,
     "block-spacing": 2,
     "brace-style": 2,
-    "camelcase": 2,
+    "camelcase": 1,
     "comma-dangle": [
       2,
-      "only-multiline"
+      "always-multiline"
     ],
     "comma-spacing": 2,
     "comma-style": 2,
@@ -88,7 +88,10 @@
     "prefer-const": 2,
     "prefer-reflect": 0,
     "prefer-spread": 2,
-    "quote-props": 2,
+    "quote-props": [
+      2,
+      "as-needed"
+    ],
     "quotes": [
       2,
       "backtick"

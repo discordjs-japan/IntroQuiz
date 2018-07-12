@@ -15,7 +15,7 @@
 /* Clear cache */
 delete require.cache[require.resolve(`./messages.json`)]
 
-const {"parsed": env} = require(`dotenv-safe`).config()
+const {parsed: env} = require(`dotenv-safe`).config()
 const discord = require(`discord.js`)
 const client = new discord.Client()
 const ytdl = require(`ytdl-core`)
@@ -23,7 +23,7 @@ const playlist = require(`./playlist`)
 const {
   songReplace,
   songReplace2,
-  songReplace3
+  songReplace3,
 } = require(`./song_replace`)
 const messages = require(`./messages.json`)
 const levenshtein = require(`levenshtein`)
@@ -52,8 +52,8 @@ client.on(`message`, async msg => {
     else {
       const cmds = Object.keys(commands)
       const commandList = cmds.map(cmd => ({
-        "command": cmd,
-        "levenshtein": levenshtein(split[0], cmd).distance
+        command: cmd,
+        levenshtein: levenshtein(split[0], cmd).distance,
       }))
       const similarCmds = commandList.filter(e => e.levenshtein <= 2)
         .sort((a, b) => a.no - b.no)
@@ -75,16 +75,16 @@ client.on(`message`, async msg => {
   }
 })
 commands.ping = {
-  "description": `ボットのPingを確認`,
-  "usage": [[`ping`, `ボットのPingを確認`]],
+  description: `ボットのPingを確認`,
+  usage: [[`ping`, `ボットのPingを確認`]],
   run(msg) {
     msg.channel.send(messages.pong(Math.floor(client.ping)))
-  }
+  },
 }
 
 commands.help = {
-  "description": `ヘルプを表示`,
-  "usage": [[`help [<command>]`, `ヘルプを表示`]],
+  description: `ヘルプを表示`,
+  usage: [[`help [<command>]`, `ヘルプを表示`]],
   run(msg, split) {
     if (split[1]) {
       const cmd = commands[split[1]]
@@ -107,14 +107,14 @@ commands.help = {
       })
       msg.channel.send(embed)
     }
-  }
+  },
 }
 
 commands.quiz = {
-  "description": `イントロクイズを開始、終了`,
-  "usage": [
+  description: `イントロクイズを開始、終了`,
+  usage: [
     [`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`],
-    [`quiz (end|stop)`, `イントロクイズを終了`]
+    [`quiz (end|stop)`, `イントロクイズを終了`],
   ],
   async run(msg, split) {
     if (split[1] === `start`) {
@@ -155,7 +155,7 @@ commands.quiz = {
     } else {
       msg.channel.send(messages.wrong_args)
     }
-  }
+  },
 }
 
 function nextquiz(msg, number = 0) {
@@ -165,7 +165,7 @@ function nextquiz(msg, number = 0) {
     msg.channel.send(messages.quiz.start)
     songinfo = songs[Math.floor(Math.random() * songs.length)]
     console.log(songinfo)
-    const stream = ytdl(songinfo[0], {"filter": `audioonly`})
+    const stream = ytdl(songinfo[0], {filter: `audioonly`})
     dispatcher = connection.playStream(stream)
     dispatcher.on(`end`, () => {
       if (!correct)
@@ -178,19 +178,19 @@ function nextquiz(msg, number = 0) {
 commands.test = {
   run(msg) {
     msg.channel.send(`Extracted name: \`` + songReplace(msg.content.replace(env.PREFIX + `test `, ``)) + `\``)
-  }
+  },
 }
 
 commands.test2 = {
   run(msg) {
     msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``)
-  }
+  },
 }
 
 commands.test3 = {
   run(msg) {
     msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``)
-  }
+  },
 }
 
 commands.testmulti = {
@@ -202,7 +202,7 @@ commands.testmulti = {
       .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
       .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``)
     msg.channel.send(embed)
-  }
+  },
 }
 
 process.on(`SIGINT`, () => {
