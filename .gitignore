@@ -63,6 +63,6 @@ data/
 # do not include raw file
 netrc
 
-# do not include some files
+# scripts
 travis-scripts.zip
 scripts/
