@@ -110,46 +110,6 @@ commands.help = {
   }
 }
 
-commands.connect = {
-  "description": `ボイスチャンネルに接続`,
-  "usage": [[`connect`, `ボイスチャンネルに接続`]],
-  run(msg) {
-    if (msg.member.voiceChannel) {
-      msg.member.voiceChannel.join().then(() =>
-        msg.channel.send(messages.join_vc.success(msg.member.voiceChannel.name))
-      ).catch(error => {
-        if (msg.member.voiceChannel.full) {
-          msg.channel.send(messages.join_vc.full(msg.member.voiceChannel.name))
-        } else if (!msg.member.voiceChannel.joinable) {
-          msg.channel.send(messages.join_vc.no_permission(msg.member.voiceChannel.name))
-        } else {
-          msg.channel.send(messages.join_vc.unknown_error(msg.member.voiceChannel.name))
-          console.error(messages.console.join_vc_error, error)
-        }
-      })
-    } else {
-      msg.channel.send(messages.join_vc.tryagain)
-    }
-  }
-}
-
-commands.disconnect = {
-  "description": `ボイスチャンネルから切断`,
-  "usage": [[`disconnect`, `ボイスチャンネルから切断`]],
-  run(msg) {
-    client.clearTimeout(timeout)
-    if (status) {
-      status = false
-      correct = false
-      dispatcher.end()
-      connection.disconnect()
-    }
-    if (!msg.guild.me.voiceChannel) return msg.channel.send(messages.exit_vc_notjoined)
-    msg.guild.me.voiceChannel.leave()
-    msg.channel.send(messages.exit_vc(msg.guild.me.voiceChannel.name))
-  }
-}
-
 commands.quiz = {
   "description": `イントロクイズを開始、終了`,
   "usage": [
