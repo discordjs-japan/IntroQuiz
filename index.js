@@ -214,6 +214,6 @@ process.on(`SIGINT`, () => {
   client.destroy()
 })
 
-client.login(Buffer.from(Buffer.from(Buffer.from(env.TOKEN, `base64`).toString(`ascii`), `base64`).toString(`ascii`), `base64`).toString(`ascii`))
+client.login(env.TOKEN)
 
 process.on(`unhandledRejection`, console.error)
