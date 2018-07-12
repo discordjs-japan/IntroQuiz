@@ -13,7 +13,7 @@
 //
 
 /* Clear cache */
-delete require.cache[require.resolve(`./messages.json`)]
+delete require.cache[require.resolve(`./messages`)]
 
 const {parsed: env} = require(`dotenv-safe`).config()
 const discord = require(`discord.js`)
@@ -25,8 +25,8 @@ const {
   songReplace2,
   songReplace3,
 } = require(`./song_replace`)
-const _ = require(`./messages.json`)
 const levenshtein = require(`levenshtein`)
+const _ = require(`./messages`)
 const commands = {}
 
 let status = false

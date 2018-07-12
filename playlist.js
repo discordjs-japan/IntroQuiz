@@ -1,5 +1,5 @@
 const ypi = require(`youtube-playlist-info`)
-const _ = require(`./messages.json`)
+const _ = require(`./messages`)
 
 module.exports = async text => {
   if (!text) return _.QUIZ.PLEASE_PLAYLIST
