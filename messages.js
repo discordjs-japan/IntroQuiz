@@ -21,8 +21,8 @@ module.exports = {
     START: `スタート！この曲は何でしょう？音楽の再生が終了するまで誰も答えられなかった場合は、誰にもポイントは入りません。`,
     STOP: `イントロクイズを終了しました。`,
     NOT_STARTED: `イントロクイズはすでに終了しているか、まだ開始していません。`,
-    CORRECT: (title, id) => `正解！答えは「${title}」でした！\nYouTube: https://youtu.be/${id}`,
-    UNCORRECT: (title, id) => `音楽の再生が終了しました！答えは「${title}」でした！残念...\nYouTube: https://youtu.be/${id}`,
+    CORRECT: (id, title) => `正解！答えは「${title}」でした！\nYouTube: https://youtu.be/${id}`,
+    UNCORRECT: (id, title) => `音楽の再生が終了しました！答えは「${title}」でした！残念...\nYouTube: https://youtu.be/${id}`,
     ERROR: {
       UNAVAILABLE: `:x: この再生リストは**非公開**です。`,
       NOTFOUND: `:x: この再生リストは存在しません(IDを確認してください)。`,
