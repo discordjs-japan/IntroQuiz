@@ -124,7 +124,7 @@ commands.quiz = {
       const game = games.get(msg.guild.id)
       if (!game || !game.status)
         return msg.channel.send(_.QUIZ.NOT_STARTED)
-      game.end()
+      game.gameend()
       games.delete(msg.guild.id)
       msg.channel.send(_.QUIZ.STOP)
     } else msg.channel.send(_.WRONG_ARGS)

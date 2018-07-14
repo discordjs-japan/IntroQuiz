@@ -61,10 +61,11 @@ class Game {
     this.preQuiz()
   }
 
-  end() {
+  gameend() {
     this.client.clearTimeout(this.timeout)
     this.status = false
     this.current = false
+    this.count = 0
     this.dispatcher.end()
     this.connection.disconnect()
   }
