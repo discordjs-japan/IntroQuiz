@@ -19,11 +19,7 @@ const {parsed: env} = require(`dotenv-safe`).config()
 const discord = require(`discord.js`)
 const client = new discord.Client()
 const playlist = require(`./playlist`)
-const {
-  songReplace1,
-  songReplace2,
-  songReplace3,
-} = require(`./song_replace`)
+const {songReplace} = require(`./song_replace`)
 const levenshtein = require(`fast-levenshtein`)
 const _ = require(`./messages`)
 const commands = {}
@@ -133,30 +129,14 @@ commands.quiz = {
 
 commands.test = {
   run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace1(msg.content.replace(env.PREFIX + `test `, ``)) + `\``)
-  },
-}
-
-commands.test2 = {
-  run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace2(msg.content.replace(env.PREFIX + `test2 `, ``)) + `\``)
-  },
-}
-
-commands.test3 = {
-  run(msg) {
-    msg.channel.send(`Extracted name: \`` + songReplace3(msg.content.replace(env.PREFIX + `test3 `, ``)) + `\``)
-  },
-}
-
-commands.testmulti = {
-  run(msg) {
+    const text = msg.content.replace(env.PREFIX + `test `, ``)
+    const answers = songReplace(text)
     const embed = new discord.RichEmbed()
       .setTitle(`判定テスト`)
-      .addField(`1つ目の答え`, `\`` + songReplace1(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
-      .addField(`2つ目の答え`, `\`` + songReplace2(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
-      .addField(`3つ目の答え`, `\`` + songReplace3(msg.content.replace(env.PREFIX + `testmulti `, ``)) + `\``)
-      .setFooter(`元テキスト: \`` + msg.content + `\` / コマンド抜き: \`` + msg.content.replace(env.PREFIX + `testmulti `, ``) + `\``)
+      .addField(`1つ目の答え`, `\`${answers[1]}\``)
+      .addField(`2つ目の答え`, `\`${answers[2]}\``)
+      .addField(`3つ目の答え`, `\`${answers[3]}\``)
+      .setFooter(`元テキスト: \`${text}\``)
     msg.channel.send(embed)
   },
 }
