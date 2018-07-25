@@ -55,7 +55,7 @@ client.on(`message`, async msg => {
     const game = games.get(msg.guild.id)
     if (game.tc.id !== msg.channel.id) return
     if (!game.status || game.correct) return
-    game.answer(msg.content)
+    game.check(msg.content)
   }
 })
 
