@@ -2,16 +2,95 @@ const _ = require(`./messages`)
 const ytdl = require(`ytdl-core`)
 const {songReplace} = require(`./song_replace`)
 
+/**
+ * Represents a game
+ */
 class Game {
+  /**
+   * @param {Client} client Discord.js client
+   */
   constructor(client) {
+    /**
+     * Discord.js client
+     * @type {?Client}
+     */
     this.client = client
+
+    /**
+     * Whether or not joinned vc success
+     * @type {?boolean}
+     */
+    this.status
+
+    /**
+     * Whether or not someone corrected answer
+     * @type {?boolean}
+     */
+    this.correct
+
+    /**
+     * The id of timer for open the space between quizzes
+     * @type {?number}
+     */
+    this.timeout
+
+    /**
+     * The current video data
+     * @type {?Video}
+     */
+    this.current
+
+    /**
+     * Video data used for quizzes
+     * @type {?Video[]}
+     */
+    this.songs
+
+    /**
+     * The quiz times counter
+     * @type {?number}
+     */
+    this.count
+
+    /**
+     * The stream dispatcher
+     * @type {?StreamDispatcher}
+     */
+    this.dispatcher
+
+    /**
+     * The voice connection
+     * @type {?VoiceConnection}
+     */
+    this.connection
+
+    /**
+     * The TextChannel to use for quizzes
+     * @type {?TextChannel}
+     */
+    this.tc
+
+    /**
+     * The VoiceChannel to use for quizzes
+     * @type {?VoiceChannel}
+     */
+    this.vc
   }
 
+  /**
+   * Init the game
+   * @param {TextChannel} tc TextChannel
+   * @param {VoiceChannel} vc VoiceChannel
+   */
   init(tc, vc) {
     this.tc = tc
     this.vc = vc
   }
 
+  /**
+   * Set all class variable to null
+   * @private
+   */
   deinit() {
     this.status = null
     this.correct = null
@@ -23,6 +102,11 @@ class Game {
     this.connection = null
   }
 
+  /**
+   * Connect VoiceChannel
+   * @returns {Promise<boolean>}
+   * @private
+   */
   async connect() {
     this.connection = await this.vc.join().catch(error => {
       if (this.vc.full) {
@@ -38,6 +122,10 @@ class Game {
     return this.status
   }
 
+  /**
+   * Init a quiz
+   * @private
+   */
   preQuiz() {
     if (!this.count) this.count = 0; else ++this.count
     this.tc.send(_.QUIZ.NEXTQUIZ(this.count))
@@ -45,10 +133,14 @@ class Game {
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
     this.current.answers = songReplace(this.current.title).filter(e => e)
     console.log(this.current)
-    if (!this.current.answers.length) return this.preQuiz()
-    this.timeout = this.client.setTimeout(() => this.quiz(), 5000)
+    if (!this.current.answers.length) this.preQuiz()
+    else this.timeout = this.client.setTimeout(() => this.quiz(), 5000)
   }
 
+  /**
+   * Quiz
+   * @private
+   */
   quiz() {
     this.tc.send(_.QUIZ.START)
     const stream = ytdl(this.current.id, {filter: `audioonly`})
@@ -60,13 +152,27 @@ class Game {
       })
   }
 
+  /**
+   * The video data
+   * @typedef {Object} Video
+   * @property {string} id The id of the video
+   * @property {string} title The title of the video
+   * @property {string[]} [answers] The quiz answers of the video
+   */
+
+  /**
+   * Starting quiz
+   * @param {Video[]} songs Video data used for quizzes
+   */
   async start(songs) {
     this.songs = songs
     const status = await this.connect()
-    if (!status) return
-    this.preQuiz()
+    if (status) this.preQuiz()
   }
 
+  /**
+   * Stop quiz
+   */
   gameend() {
     this.client.clearTimeout(this.timeout)
     this.status = false
@@ -76,6 +182,10 @@ class Game {
     this.deinit()
   }
 
+  /**
+   * Chech answer
+   * @param {string} text Answer to chech
+   */
   check(text) {
     if (this.current.answers.some(answer => text.includes(answer))) {
       this.correct = true

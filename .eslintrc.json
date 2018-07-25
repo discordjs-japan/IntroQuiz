@@ -101,7 +101,18 @@
       2,
       "backtick"
     ],
-    "require-jsdoc": 0,
+    "require-jsdoc": [
+      2,
+      {
+        "require": {
+          "ArrowFunctionExpression": false,
+          "ClassDeclaration": false,
+          "FunctionDeclaration": false,
+          "FunctionExpression": false,
+          "MethodDefinition": true
+        }
+      }
+    ],
     "require-yield": 2,
     "semi": [
       2,
@@ -116,6 +127,29 @@
     "space-unary-ops": 0,
     "spaced-comment": 0,
     "strict": 2,
+    "valid-jsdoc": [
+      2,
+      {
+        "requireReturn": false,
+        "requireReturnDescription": false,
+        "prefer": {
+          "return": "returns",
+          "arg": "param"
+        },
+        "preferType": {
+          "String": "string",
+          "Number": "number",
+          "Boolean": "boolean",
+          "Symbol": "symbol",
+          "object": "Object",
+          "function": "Function",
+          "array": "Array",
+          "date": "Date",
+          "error": "Error",
+          "null": "void"
+        }
+      }
+    ],
     "wrap-regex": 2
   }
 }
