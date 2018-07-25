@@ -114,7 +114,10 @@ commands.quiz = {
       msg.channel.send(_.QUIZ.LOADING)
       const list = await playlist(split[2])
       if (!Array.isArray(list)) return msg.channel.send(list)
-      const songs = list.map(video => [video.resourceId.videoId, video.title])
+      const songs = list.map(video => ({
+        id: video.resourceId.videoId,
+        title: video.title,
+      }))
       game.start(songs)
     } else if (split[1] === `end` || split[1] === `stop`) {
       const game = games.get(msg.guild.id)

@@ -45,11 +45,11 @@ class Game {
     this.tc.send(_.QUIZ.START)
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
     console.log(this.current)
-    const stream = ytdl(this.current[0], {filter: `audioonly`})
+    const stream = ytdl(this.current.id, {filter: `audioonly`})
     this.dispatcher = this.connection.playStream(stream)
       .on(`end`, () => {
         if (!this.correct)
-          this.tc.send(_.QUIZ.UNCORRECT(...this.current))
+          this.tc.send(_.QUIZ.UNCORRECT(this.current))
         if (this.status) this.preQuiz()
       })
   }
@@ -64,7 +64,6 @@ class Game {
   gameend() {
     this.client.clearTimeout(this.timeout)
     this.status = false
-    this.current = true
     this.current = []
     this.count = 0
     this.dispatcher.end()
@@ -72,10 +71,10 @@ class Game {
   }
 
   answer(text) {
-    const answers = songReplace(this.current[1]).filter(e => e)
+    const answers = songReplace(this.current.title).filter(e => e)
     if (answers.some(answer => text.includes(answer))) {
       this.correct = true
-      this.tc.send(_.QUIZ.CORRECT(...this.current))
+      this.tc.send(_.QUIZ.CORRECT(this.current))
       this.dispatcher.end()
     }
   }
