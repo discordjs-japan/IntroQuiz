@@ -1,139 +1,155 @@
-const {"parsed": env} = require(`dotenv-safe`).config(),
-  discord = require(`discord.js`),
-  client = new discord.Client(),
-  ytdl = require(`ytdl-core`),
-  ypi = require(`youtube-playlist-info`);
+// |---------------------------------------------|
+// |  ____      _ ____            _ ____  _   _  |
+// | |  _ \    | / ___|          | |  _ \| \ | | |
+// | | | | |_  | \___ \ _____ _  | | |_) |  \| | |
+// | | |_| | |_| |___) |_____| |_| |  __/| |\  | |
+// | |____/ \___/|____/       \___/|_|   |_| \_| |
+// |                                             |
+// |---------------------------------------------|
+//
+// GitHub Repository: https://github.com/DJS-JPN/IntroQuiz
+//
+// GitLab Repository: https://gitlab.com/DJS-JPN/IntroQuiz
+//
 
-let status = false,
-  correct = false,
-  songinfo = ``,
-  connection = ``,
-  dispatcher,
-  songs,
+/* Clear cache */
+delete require.cache[require.resolve(`./messages`)]
 
- timeout = null;
+const {parsed: env} = require(`dotenv-safe`).config()
+const discord = require(`discord.js`)
+const client = new discord.Client()
+const playlist = require(`./playlist`)
+const {songReplace} = require(`./song_replace`)
+const levenshtein = require(`fast-levenshtein`)
+const _ = require(`./messages`)
+const commands = {}
+const Game = require(`./Game`)
+const games = new Map()
 
 client.on(`ready`, () => {
-  console.log(`ログインが完了しました。`);
-});
+  console.log(_.CONSOLE.LOGIN_COMPLETE(client.user.tag))
+})
 
-client.on(`message`, async (msg) => {
-  if (!msg.guild) return;
-  if (msg.author.bot || msg.system) return;
+client.on(`message`, async msg => {
+  if (!msg.guild) return
+  if (msg.author.bot || msg.system) return
   if (msg.content.startsWith(env.PREFIX)) {
-    const split = msg.content.replace(env.PREFIX, ``).split(` `),
-      command = split[0];
-    if (typeof global[command] === `function`) {
-      if (command === `nextquiz`) return;
-      global[command](msg, split);
-    } else {
-      msg.channel.send(`:x: そのようなコマンドはありません。`);
+    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`)
+    const split = msg.content.replace(env.PREFIX, ``).split(` `)
+    const command = split[0]
+    if (commands[command]) commands[command].run(msg, split)
+    else {
+      const cmds = Object.keys(commands)
+      const commandList = cmds.map(cmd => ({
+        command: cmd,
+        levenshtein: levenshtein.get(split[0], cmd),
+      }))
+      const similarCmds = commandList.filter(e => e.levenshtein <= 2)
+        .sort((a, b) => a.no - b.no)
+        .map(e => `・\`${env.PREFIX}${e.command}\``)
+        .join(`\n`)
+      msg.channel.send(_.NO_COMMAND)
+      if (similarCmds) msg.channel.send(_.DIDYOUMEAN(similarCmds))
     }
-  } else if (status) {
-    if (~songinfo[1].split(/\s+/).indexOf(msg.content)) {
-      correct = true;
-      msg.channel.send(`正解！答えは「${songinfo[1]}」でした！\nYouTube: https://youtu.be/${songinfo[0]}`);
-      dispatcher.end();
-    }
+  } else if (games.has(msg.guild.id)) {
+    const game = games.get(msg.guild.id)
+    if (game.tc.id !== msg.channel.id) return
+    if (!game.status || game.correct) return
+    game.answer(msg.content)
   }
-});
-global.ping = (msg, split) => {
-  msg.channel.send(`ポン！ Ping の確認に成功しました！ボットの Ping は ${Math.floor(client.ping)}ms です！`);
-};
+})
 
-global.connect = (msg, split) => {
-  if (msg.member.voiceChannel) {
-    msg.member.voiceChannel.join().then((connection) =>
-      msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」の参加に成功しました。`)
-    ).catch((error) => {
-      if (msg.member.voiceChannel.full) {
-        msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} は満員のため、参加することができませんでした。`);
-      } else if (!msg.member.voiceChannel.joinable) {
-        msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} に参加する権限が与えられていないため、参加することができませんでした。`);
-      } else {
-        msg.channel.send(`予期せぬエラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
-        console.error(`ボットの参加時にエラーが発生しました：${error}`);
-      }
-    });
-  } else {
-    msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
-  }
-};
-
-global.disconnect = (msg, split) => {
-  if (msg.member.voiceChannelID === msg.guild.me.voiceChannelID) {
-    msg.member.voiceChannel.leave();
-    msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name}」を退出しました。`);
-  } else {
-    msg.channel.send(`ボットが退出するボイスチャンネルに参加してからもう一度お試しください。`);
-  }
-};
-
-global.quiz = async (msg, split) => {
-  if (split[1] === `start`) {
-    if (status) return;
-    if (msg.member.voiceChannel) {
-      if (!split[2]) return msg.channel.send(`再生リストIDを入力してください`);
-      msg.channel.send(`再生リスト読み込み中...`);
-      if(split[2].length < 34) {
- return msg.channel.send(`:x: 文字数が足りません(34文字以上であることが必須です)。`);
-}
-      split[2] = split[2].replace(`https://www.youtube.com/playlist?list=`, ``);
-      if (~split[2].indexOf(`https://www.youtube.com/watch?v=`) && ~split[2].indexOf(`&list=`)) {
-        split[2] = split[2].replace(`&list=`, ``);
-        split[2] = split[2].replace(`https://www.youtube.com/watch?v=`, ``).slice(11);
-        split[2] = split[2].replace(/&index=(\\.|[^&])*/gm, ``);
-      }
-      const list = await ypi(env.APIKEY, split[2]).
-        catch((error) => msg.channel.send(`再生リスト読み込みエラー：\`${error}\` (\`${split[2]})\``));
-      songs = list.map((video) => [video.resourceId.videoId, video.title]);
-      msg.member.voiceChannel.join().then((con) => {
-        connection = con;
-        status = true;
-        nextquiz(msg);
-      }).catch((error) => {
-        if (msg.member.voiceChannel.full) {
-          msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} は満員のため、参加することができませんでした。`);
-        } else if (!msg.member.voiceChannel.joinable) {
-          msg.channel.send(`ボイスチャンネル「${msg.member.voiceChannel.name} に参加する権限が与えられていないため、参加することができませんでした。`);
-        } else {
-          msg.channel.send(`予期せぬエラーが発生したため、ボイスチャンネル「${msg.member.voiceChannel.name} に参加することができませんでした。このエラーは自動的に開発者へと送信されます（個人情報は一切収集されません）`);
-          console.error(`ボットの参加時にエラーが発生しました：${error}`);
-        }
-      });
-    } else {
-      msg.channel.send(`ボットが参加するボイスチャンネルに参加してからもう一度お試しください。`);
-    }
-  }
-  if (split[1] === `end` || split[1] === `stop`) {
-    if (status) {
-      client.clearTimeout(timeout);
-      status = false;
-      correct = false;
-      dispatcher.end();
-      connection.disconnect();
-      msg.channel.send(`イントロクイズを終了しました。`);
-    } else {
-      msg.channel.send(`イントロクイズが既に終了されているか、まだ開始されていません。`);
-    }
-  }
-};
-
-function nextquiz(msg, number = 0) {
-  msg.channel.send(`${++number} 問目！五秒後に始まるよ！`);
-  correct = false;
-  timeout = client.setTimeout(() => {
-    msg.channel.send(`スタート！この曲は何でしょう？音楽の再生が終了するまで誰も答えられなかった場合は、誰にもポイントは入りません。`);
-    songinfo = songs[Math.floor(Math.random() * songs.length)];
-    console.log(songinfo);
-    const stream = ytdl(songinfo[0], {"filter": `audioonly`});
-    dispatcher = connection.playStream(stream);
-    dispatcher.on(`end`, (end) => {
-      if (!correct)
-        msg.channel.send(`音楽の再生が終了しました！答えは「${songinfo[1]}」でした！残念...\nYouTube: https://youtu.be/${songinfo[0]}`);
-      if (status) nextquiz(msg, number);
-    });
-  }, 5000);
+commands.ping = {
+  description: `ボットのPingを確認`,
+  usage: [[`ping`, `ボットのPingを確認`]],
+  run(msg) {
+    msg.channel.send(_.PONG(Math.floor(client.ping)))
+  },
 }
 
-client.login(env.TOKEN);
+commands.help = {
+  description: `ヘルプを表示`,
+  usage: [[`help [<command>]`, `ヘルプを表示`]],
+  run(msg, split) {
+    if (split[1]) {
+      const cmd = commands[split[1]]
+      if (!cmd || !cmd.description && !cmd.usage)
+        return msg.channel.send(_.NO_COMMAND)
+      const embed = new discord.RichEmbed()
+        .setTitle(split[1])
+        .setTimestamp()
+      if (cmd.description) embed.setDescription(cmd.description)
+      if (cmd.usage) cmd.usage.forEach(usage => embed.addField(...usage))
+      msg.channel.send(embed)
+    } else {
+      const embed = new discord.RichEmbed()
+        .setTitle(_.HELP.COMMANDS)
+        .setTimestamp()
+      Object.keys(commands).forEach(cmd => {
+        const command = commands[cmd]
+        if (command.description)
+          embed.addField(cmd, command.description)
+      })
+      msg.channel.send(embed)
+    }
+  },
+}
+
+commands.quiz = {
+  description: `イントロクイズを開始、終了`,
+  usage: [
+    [`quiz start <YouTubeプレイリスト>`, `イントロクイズを開始`],
+    [`quiz (end|stop)`, `イントロクイズを終了`],
+  ],
+  async run(msg, split) {
+    if (split[1] === `start`) {
+      let game = games.get(msg.guild.id)
+      if (!game) {
+        if (!msg.member.voiceChannel)
+          return msg.channel.send(_.JOIN_VC.TRYAGAIN)
+        game = new Game(client, msg.channel, msg.member.voiceChannel)
+        games.set(msg.guild.id, game)
+      } else if (game.status) return
+      if (!msg.member.voiceChannel) return msg.channel.send(_.JOIN_VC.TRYAGAIN)
+      msg.channel.send(_.QUIZ.LOADING)
+      const list = await playlist(split[2])
+      if (!Array.isArray(list)) return msg.channel.send(list)
+      const songs = list.map(video => [video.resourceId.videoId, video.title])
+      game.start(songs)
+    } else if (split[1] === `end` || split[1] === `stop`) {
+      const game = games.get(msg.guild.id)
+      if (!game || !game.status)
+        return msg.channel.send(_.QUIZ.NOT_STARTED)
+      game.gameend()
+      games.delete(msg.guild.id)
+      msg.channel.send(_.QUIZ.STOP)
+    } else msg.channel.send(_.WRONG_ARGS)
+  },
+}
+
+commands.test = {
+  run(msg) {
+    const text = msg.content.replace(env.PREFIX + `test `, ``)
+    const answers = songReplace(text)
+    const embed = new discord.RichEmbed()
+      .setTitle(`判定テスト`)
+      .addField(`1つ目の答え`, `\`${answers[1]}\``)
+      .addField(`2つ目の答え`, `\`${answers[2]}\``)
+      .addField(`3つ目の答え`, `\`${answers[3]}\``)
+      .setFooter(`元テキスト: \`${text}\``)
+    msg.channel.send(embed)
+  },
+}
+
+process.on(`SIGINT`, () => {
+  setTimeout(() => {
+    console.error(`強制終了中...`)
+    process.exit()
+  }, 5000)
+  console.error(`SIGINTを検知しました。`)
+  client.destroy()
+})
+
+client.login(env.TOKEN)
+
+process.on(`unhandledRejection`, console.error)
