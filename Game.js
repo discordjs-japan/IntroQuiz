@@ -71,7 +71,7 @@ class Game {
   }
 
   answer(text) {
-    const answers = songReplace(this.current[1])
+    const answers = songReplace(this.current[1]).filter(e => e)
     if (answers.some(answer => text.includes(answer))) {
       this.correct = true
       this.tc.send(_.QUIZ.CORRECT(...this.current))
