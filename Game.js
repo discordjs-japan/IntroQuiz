@@ -64,7 +64,8 @@ class Game {
   gameend() {
     this.client.clearTimeout(this.timeout)
     this.status = false
-    this.current = false
+    this.current = true
+    this.current = []
     this.count = 0
     this.dispatcher.end()
     this.connection.disconnect()
