@@ -21,13 +21,13 @@
   "homepage": "https://github.com/DJS-JPN/Quiz#readme",
   "dependencies": {
     "discord.js": "^11.3.2",
-    "dotenv-safe": "^5.0.1",
+    "dotenv-safe": "^6.0.0",
     "fast-levenshtein": "^2.0.6",
-    "ffmpeg-binaries": "^3.2.2-3",
+    "ffmpeg-binaries": "^4.0.0",
     "node-mkdirp": "0.0.1",
-    "node-opus": "^0.2.7",
+    "node-opus": "^0.3.0",
     "opusscript": "0.0.6",
     "youtube-playlist-info": "^1.1.2",
-    "ytdl-core": "^0.20.2"
+    "ytdl-core": "^0.21.1"
   }
 }
