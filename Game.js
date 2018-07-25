@@ -5,22 +5,22 @@ const {songReplace} = require(`./song_replace`)
 class Game {
   constructor(client) {
     this.client = client
-
-    this.status = false // 参加したらtrue
-    this.correct = false // 正解がでたらtrue
-    this.timeout
-    this.current // 現在の動画
-    this.songs // 再生リスト
-    this.count = 0
-
-    // TODO
-    this.dispatcher
-    this.connection
   }
 
   init(tc, vc) {
     this.tc = tc
     this.vc = vc
+  }
+
+  deinit() {
+    this.status = null
+    this.correct = null
+    this.timeout = null
+    this.current = null
+    this.songs = null
+    this.count = null
+    this.dispatcher = null
+    this.connection = null
   }
 
   async connect() {
@@ -39,7 +39,8 @@ class Game {
   }
 
   preQuiz() {
-    this.tc.send(_.QUIZ.NEXTQUIZ(++this.count))
+    if (!this.count) this.count = 0; else ++this.count
+    this.tc.send(_.QUIZ.NEXTQUIZ(this.count))
     this.correct = false
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
     this.current.answers = songReplace(this.current.title).filter(e => e)
@@ -69,10 +70,10 @@ class Game {
   gameend() {
     this.client.clearTimeout(this.timeout)
     this.status = false
-    this.current = []
-    this.count = 0
+    this.correct = true
     this.dispatcher.end()
     this.connection.disconnect()
+    this.deinit()
   }
 
   check(text) {
