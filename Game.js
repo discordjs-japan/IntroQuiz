@@ -3,10 +3,8 @@ const ytdl = require(`ytdl-core`)
 const {songReplace} = require(`./song_replace`)
 
 class Game {
-  constructor(client, tc, vc) {
+  constructor(client) {
     this.client = client
-    this.tc = tc
-    this.vc = vc
 
     this.status = false // 参加したらtrue
     this.correct = false // 正解がでたらtrue
@@ -18,6 +16,11 @@ class Game {
     // TODO
     this.dispatcher
     this.connection
+  }
+
+  init(tc, vc) {
+    this.tc = tc
+    this.vc = vc
   }
 
   async connect() {

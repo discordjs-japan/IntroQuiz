@@ -107,13 +107,14 @@ commands.quiz = {
       if (!game) {
         if (!msg.member.voiceChannel)
           return msg.channel.send(_.JOIN_VC.TRYAGAIN)
-        game = new Game(client, msg.channel, msg.member.voiceChannel)
+        game = new Game(client)
         games.set(msg.guild.id, game)
       } else if (game.status) return
       if (!msg.member.voiceChannel) return msg.channel.send(_.JOIN_VC.TRYAGAIN)
       msg.channel.send(_.QUIZ.LOADING)
       const list = await playlist(split[2])
       if (!Array.isArray(list)) return msg.channel.send(list)
+      game.init(msg.channel, msg.member.voiceChannel)
       const songs = list.map(video => ({
         id: video.resourceId.videoId,
         title: video.title,
