@@ -147,7 +147,7 @@ class Game {
     this.dispatcher = this.connection.playStream(stream)
       .on(`end`, () => {
         if (!this.correct)
-          this.tc.send(_.QUIZ.UNCORRECT(this.current))
+          this.tc.send(_.QUIZ.UNCORRECT(this.current.title))
         if (this.status) this.preQuiz()
       })
   }
@@ -189,7 +189,7 @@ class Game {
   check(text) {
     if (this.current.answers.some(answer => text.includes(answer))) {
       this.correct = true
-      this.tc.send(_.QUIZ.CORRECT(this.current))
+      this.tc.send(_.QUIZ.CORRECT(this.current.title))
       this.dispatcher.end()
     }
   }
