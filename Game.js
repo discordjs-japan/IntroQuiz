@@ -17,13 +17,13 @@ class Game {
     this.client = client
 
     /**
-     * Whether or not joinned vc success
+     * Whether or not joined vc successfully
      * @type {?boolean}
      */
     this.status
 
     /**
-     * Whether or not someone corrected answer
+     * Whether or not someone answered correctly
      * @type {?boolean}
      */
     this.correct
@@ -103,7 +103,7 @@ class Game {
   }
 
   /**
-   * Connect VoiceChannel
+   * Connect to the VoiceChannel
    * @returns {Promise<boolean>}
    * @private
    */
@@ -123,11 +123,11 @@ class Game {
   }
 
   /**
-   * Init a quiz
+   * Initialize a quiz
    * @private
    */
   preQuiz() {
-    if (!this.count) this.count = 0; else ++this.count
+    if (typeof this.count !== `number`) this.count = 0; else this.count++
     this.tc.send(_.QUIZ.NEXTQUIZ(this.count))
     this.correct = false
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
@@ -161,7 +161,7 @@ class Game {
    */
 
   /**
-   * Starting quiz
+   * Start the quiz
    * @param {Video[]} songs Video data used for quizzes
    */
   async start(songs) {
@@ -183,11 +183,11 @@ class Game {
   }
 
   /**
-   * Chech answer
-   * @param {string} text Answer to chech
+   * Check answer
+   * @param {string} text Answer to check
    */
   check(text) {
-    if (this.current.answers.some(answer => text.includes(answer))) {
+    if (this.current.answers.map(a => a.toLowerCase()).some(answer => text.toLowerCase().includes(answer))) {
       this.correct = true
       this.tc.send(_.QUIZ.CORRECT(this.current.title))
       this.dispatcher.end()

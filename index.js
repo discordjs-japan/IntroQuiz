@@ -145,15 +145,6 @@ commands.test = {
   },
 }
 
-process.on(`SIGINT`, () => {
-  setTimeout(() => {
-    console.error(`強制終了中...`)
-    process.exit()
-  }, 5000)
-  console.error(`SIGINTを検知しました。`)
-  client.destroy()
-})
-
 client.login(env.TOKEN)
 
 process.on(`unhandledRejection`, console.error)

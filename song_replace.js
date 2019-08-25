@@ -7,7 +7,7 @@ function songReplace(name) {
 }
 
 function songReplace1(name) {
-  let a = name.replace(`「`, ``).replace(/」[^]*/gm, ``)
+  let a = name
   let result
   a = a.replace(/ -.*/gm, ``)
   a = a.replace(/ ～.*/gm, ``)
@@ -33,6 +33,9 @@ function songReplace1(name) {
   } else {
     a = a.replace(/.* -/g, ``)
   }
+  a = a.replace(/ but .*/g, ``)
+  if ((/(.*) {0,}/).test(a)) a = (/(.*) {0,}/).exec(a)[1]
+  if ((/ {0,}(.*)/).test(a)) a = (/ {0,}(.*)/).exec(a)[1]
   result = a.replace(/（.*/gm, ``)
   return result
 }
@@ -82,14 +85,23 @@ function songReplace2(name) {
     a = a.replace(`Intro`, ``)
   }
   a = a.replace(/\s*(b|B)y.*/g, ``)
+  a = a.replace(/ but .*/g, ``)
+  if ((/(.*) {0,}/).test(a)) a = (/(.*) {0,}/).exec(a)[1]
+  if ((/ {0,}(.*)/).test(a)) a = (/ {0,}(.*)/).exec(a)[1]
   result = a
   return result
 }
 
 function songReplace3(name) {
   const songname = name
-  let a = songname.replace(`「`, ``).replace(/」[^]*/gm, ``)
+  let a = songname
   let result
+  if ((/(\(|)feat. .*/g).test(a)) {
+    a = (/(.*) (\(|)feat. /g).exec(a)[1]
+    a = a.replace(/「.*」/, ``)
+    return a
+  }
+  a = a.replace(`「`, ``).replace(/」[^]*/gm, ``)
   if ((/.*『.*』.*-.*／.*/gm).test(a)) {
     a = a.replace(/／.*/g, ``).replace(/[^]*(\\.|[^- ])*- /gm, ``)
   } else {
@@ -119,6 +131,9 @@ function songReplace3(name) {
   if (a !== `Extended`) {
     a = a.replace(`Extended`, ``)
   }
+  a = a.replace(/ but .*/g, ``)
+  if ((/(.*) {0,}/).test(a)) a = (/(.*) {0,}/).exec(a)[1]
+  if ((/ {0,}(.*)/).test(a)) a = (/ {0,}(.*)/).exec(a)[1]
   result = a.replace(/（.*/gm, ``)
   return result
 }
