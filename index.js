@@ -25,16 +25,18 @@ const _ = require(`./messages`)
 const commands = {}
 const Game = require(`./Game`)
 const games = new Map()
+const {LoggerFactory} = require(`logger.js`)
+const logger = LoggerFactory.getLogger(`main`, `purple`)
 
 client.on(`ready`, () => {
-  console.log(_.CONSOLE.LOGIN_COMPLETE(client.user.tag))
+  logger.info(_.CONSOLE.LOGIN_COMPLETE(client.user.tag))
 })
 
 client.on(`message`, async msg => {
   if (!msg.guild) return
   if (msg.author.bot || msg.system) return
   if (msg.content.startsWith(env.PREFIX)) {
-    console.log(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`)
+    logger.info(`${msg.author.tag}がコマンドを送信しました: ${msg.content}`)
     const split = msg.content.replace(env.PREFIX, ``).split(` `)
     const command = split[0]
     if (commands[command]) commands[command].run(msg, split)
@@ -147,4 +149,4 @@ commands.test = {
 
 client.login(env.TOKEN)
 
-process.on(`unhandledRejection`, console.error)
+process.on(`unhandledRejection`, e => logger.error(e))

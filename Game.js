@@ -1,6 +1,8 @@
 const _ = require(`./messages`)
 const ytdl = require(`ytdl-core`)
 const {songReplace} = require(`./song_replace`)
+const {LoggerFactory} = require(`logger.js`)
+const logger = LoggerFactory.getLogger(`main`, `blue`)
 
 /**
  * Represents a game
@@ -115,7 +117,7 @@ class Game {
         this.tc.send(_.JOIN_VC.NO_PERMISSION(this.vc.name))
       } else {
         this.tc.send(_.JOIN_VC.UNKNOWN_ERROR(this.vc.name))
-        console.error(_.CONSOLE.JOIN_VC_ERROR(error))
+        logger.error(_.CONSOLE.JOIN_VC_ERROR(error))
       }
     })
     if (this.connection) this.status = true
@@ -132,7 +134,7 @@ class Game {
     this.correct = false
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
     this.current.answers = songReplace(this.current.title).filter(e => e)
-    console.log(this.current)
+    logger.info(this.current)
     if (!this.current.answers.length) this.preQuiz()
     else this.timeout = this.client.setTimeout(() => this.quiz(), 5000)
   }

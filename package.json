@@ -24,6 +24,7 @@
     "dotenv-safe": "^6.0.0",
     "fast-levenshtein": "^2.0.6",
     "ffmpeg-static": "^2.5.0",
+    "logger.js": "acrylic-style/logger.js",
     "node-mkdirp": "0.0.1",
     "node-opus": "^0.3.0",
     "opusscript": "0.0.6",
