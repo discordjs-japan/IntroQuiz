@@ -31,8 +31,8 @@ function songReplace1(name) {
     a = a.replace(/.* -/g, ``)
   }
   a = a.replace(/ but .*/g, ``)
-  if ((/(.*) {0,}/).test(a)) a = (/(.*) {0,}/).exec(a)[1]
-  if ((/ {0,}(.*)/).test(a)) a = (/ {0,}(.*)/).exec(a)[1]
+  a = a.replace((/.*(\s{0,})/).exec(a)[1], ``)
+  a = a.replace((/(\s{0,}).*/).exec(a)[1], ``)
   result = a.replace(/（.*/gm, ``)
   return result
 }
@@ -80,8 +80,8 @@ function songReplace2(name) {
   }
   a = a.replace(/\s*(b|B)y.*/g, ``)
   a = a.replace(/ but .*/g, ``)
-  if ((/(.*) {0,}/).test(a)) a = (/(.*) {0,}/).exec(a)[1]
-  if ((/ {0,}(.*)/).test(a)) a = (/ {0,}(.*)/).exec(a)[1]
+  a = a.replace((/.*(\s{0,})/).exec(a)[1], ``)
+  a = a.replace((/(\s{0,}).*/).exec(a)[1], ``)
   result = a
   return result
 }
@@ -122,8 +122,8 @@ function songReplace3(name) {
     a = a.replace(`Extended`, ``)
   }
   a = a.replace(/ but .*/g, ``)
-  if ((/(.*) {0,}/).test(a)) a = (/(.*) {0,}/).exec(a)[1]
-  if ((/ {0,}(.*)/).test(a)) a = (/ {0,}(.*)/).exec(a)[1]
+  a = a.replace((/.*(\s{0,})/).exec(a)[1], ``)
+  a = a.replace((/(\s{0,}).*/).exec(a)[1], ``)
   result = a.replace(/（.*/gm, ``)
   return result
 }
