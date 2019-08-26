@@ -189,7 +189,8 @@ class Game {
    * @param {string} text Answer to check
    */
   check(text) {
-    if (this.current.answers.map(a => a.toLowerCase()).some(answer => text.toLowerCase().includes(answer))) {
+    if (this.current.answers.map(a => a.toLowerCase()).some(answer => text.toLowerCase().includes(answer)) ||
+    ((/\w/g).test(text) && this.current.title.includes(text))) { // needs to be 100% match but easy than others, you can't type just "-" or something
       this.correct = true
       this.tc.send(_.QUIZ.CORRECT(this.current.title))
       this.dispatcher.end()
