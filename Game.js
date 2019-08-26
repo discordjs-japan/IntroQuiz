@@ -134,7 +134,7 @@ class Game {
     this.correct = false
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
     this.current.answers = songReplace(this.current.title).filter(e => e)
-    logger.info(this.current)
+    logger.info(require(`util`).inspect(this.current))
     if (!this.current.answers.length) this.preQuiz()
     else this.timeout = this.client.setTimeout(() => this.quiz(), 5000)
   }
