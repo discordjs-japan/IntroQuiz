@@ -16,16 +16,13 @@ function songReplace1(name) {
     a = a.replace(/.*?／/, ``)
     a = a.replace(/『.*/, ``)
   }
-  a = a.replace(/（.*?(\\.|[^）])）/gm, ``) // NEW
-  a = a.replace(/\(.*?(\\.|[^)])\)/gm, ``) // NEW
+  a = a.replace(/（.*?(\\.|[^）])）/gm, ``)
+  a = a.replace(/\(.*?(\\.|[^)])\)/gm, ``)
   a = a.replace(/[^]*(\\.|[^『])『/gm, ``).replace(/』[^]*/gm, ``)
   a = a.replace(/【.*?】/g, ``)
-  ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
   a = a.replace(/[^]*(\\.|[^／])／/gm, ``)
   a = a.replace(/[^]*(\\.|[^「])「/gm, ``).replace(/」[^]*/gm, ``)
-  //    a = a.replace(/\(.*/gm, "");
   a = a.replace(/"/gm, ``)
-  //    a = a.replace(/-[^]*/gm, "");
   a = a.replace(/\[[^]*/gm, ``)
   if ((/.*?-([^-].*?)-.*/gm).test(a)) {
     result = a.replace(/.*?- /, ``).replace(/ -.*/, ``)
@@ -55,16 +52,13 @@ function songReplace2(name) {
     a = a.replace(/[^]*(\\.|[^『])『/gm, ``).replace(/』[^]*/gm, ``)
   }
   a = a.replace(/.*\//, ``)
-  a = a.replace(/（.*?(\\.|[^）])）/gm, ``) // NEW
-  a = a.replace(/\(.*?(\\.|[^)])\)/gm, ``) // NEW
+  a = a.replace(/（.*?(\\.|[^）])）/gm, ``)
+  a = a.replace(/\(.*?(\\.|[^)])\)/gm, ``)
   a = a.replace(/【.*?(\\.|[^】])】/gm, ``)
   a = a.replace(/.*:: /gm, ``)
-  ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
   a = a.replace(/[^]*(\\.|[^／])／/gm, ``)
   a = a.replace(/[^]*(\\.|[^「])「/gm, ``).replace(/」[^]*/gm, ``)
-  //    a = a.replace(/\(.*/gm, "");
   a = a.replace(/"/gm, ``)
-  //    a = a.replace(/-[^]*/gm, "");
   a = a.replace(/\[[^]*/gm, ``)
   if ((/.*?-([^-].*?)-.*/gm).test(a)) {
     result = a.replace(/ -.*/, ``)
@@ -108,14 +102,10 @@ function songReplace3(name) {
     a = a.replace(/[^]*(\\.|[^『])『/gm, ``).replace(/』[^]*/gm, ``)
   }
   a = a.replace(/【.*?】/g, ``)
-  ////    a = a.replace(/[^]*(\\.|[^- ])*- /gm, ""); // ダメ
   a = a.replace(/[^]*(\\.|[^／])／/gm, ``)
   a = a.replace(/[^]*(\\.|[^「])「/gm, ``).replace(/」[^]*/gm, ``)
-  //    a = a.replace(/\(.*/gm, "");
   a = a.replace(/".*?"/gm, ``)
-  //    a = a.replace(/-[^]*/gm, "");
   a = a.replace(/\[[^]*/gm, ``)
-  //  a = a.replace(/.*\//, "");
   if ((/.*?-([^-].*?)-.*/gm).test(a)) {
     result = a.replace(/.*- /, ``)
     return result

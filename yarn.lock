@@ -691,7 +691,7 @@ lodash@^4.17.14:
 
 logger.js@acrylic-style/logger.js:
   version "0.0.1"
-  resolved "https://codeload.github.com/acrylic-style/logger.js/tar.gz/b90e47f029fb4c4a74a0c7fc02d062204a2250fd"
+  resolved "https://codeload.github.com/acrylic-style/logger.js/tar.gz/f895cafd13ad24d02ebb88c6307d9873a2dcd405"
   dependencies:
     chalk "^2.4.2"
     moment "^2.24.0"
