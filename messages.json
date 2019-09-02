@@ -1,0 +1,29 @@
+{
+  "commands": {
+    "help": "Displays command information.",
+    "eval": "Eval(Run) script.",
+    "version": "Displays version info.",
+    "quiz": "Start, or stop Intro quiz."
+  },
+  "no_command": "Sorry, but we couldn't find command by provided name.",
+  "youdonthaveperm": "Seems like you don't have enough permission to do this.",
+  "yes": "Yes",
+  "no": "No",
+  "join_vc": "Please join to the voice channel and try again.",
+  "joined_vc": "Joined to the voice channel #{0}.",
+  "vc_full": "Unable join to the voice channel #{0} because it's full!",
+  "vc_no_permission": "Unable to join to the voice channel #{0} because I don't have the permissions to join that channel!",
+  "unknown_error": "An unknown error has been occurred and automatically reported to the devs. (Personal information are NOT included)",
+  "nextsong": "{0} th question! Starting in 5 seconds!",
+  "start": "Start! Guess what's this song? If no one answered even reached the end of the song, no one will get the points.",
+  "uncorrect": "Song has been ended! The answer was `{0}`! Better luck next time!",
+  "correct": "Correct! The answer was `{0}`!",
+  "not_started": "Quiz isn't started yet!",
+  "stopped": "IntroQuiz has been ended by {0}.",
+  "wrong_args": "Wrong arguments were provided.",
+  "loading": "Loading the playlist...",
+  "pls_playlist": "Please specify a playlist!",
+  "invalid_playlist": "Invalid playlist were provided.",
+  "unavailable_playlist": "This playlist is currently unavailable. (Likely removed or private playlist)",
+  "bad_request_playlist": "Bad Request. Probably YouTube Data API Key is wrong."
+}

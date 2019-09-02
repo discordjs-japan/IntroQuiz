@@ -1,8 +1,9 @@
-const _ = require(`./messages`)
-const ytdl = require(`ytdl-core`)
-const {songReplace} = require(`./song_replace`)
-const {LoggerFactory} = require(`logger.js`)
-const logger = LoggerFactory.getLogger(`main`, `blue`)
+const ytdl = require('ytdl-core')
+const {songReplace} = require('./song_replace')
+const {LoggerFactory} = require('logger.js')
+const logger = LoggerFactory.getLogger('main', 'blue')
+const f = require('string-format')
+const lang = require('./messages.json')
 
 /**
  * Represents a game
@@ -112,12 +113,12 @@ class Game {
   async connect() {
     this.connection = await this.vc.join().catch(error => {
       if (this.vc.full) {
-        this.tc.send(_.JOIN_VC.FULL(this.vc.name))
+        this.tc.send(f(lang.vc_full, this.vc.name))
       } else if (!this.vc.joinable) {
-        this.tc.send(_.JOIN_VC.NO_PERMISSION(this.vc.name))
+        this.tc.send(f(lang.vc_no_permission, this.vc.name))
       } else {
-        this.tc.send(_.JOIN_VC.UNKNOWN_ERROR(this.vc.name))
-        logger.error(_.CONSOLE.JOIN_VC_ERROR(error))
+        this.tc.send(f(lang.vc_unknown_error, this.vc.name))
+        logger.error(`An error occurred while joining to the voice channel: ${error.stack || error}`)
       }
     })
     if (this.connection) this.status = true
@@ -129,12 +130,12 @@ class Game {
    * @private
    */
   preQuiz() {
-    if (typeof this.count !== `number`) this.count = 0; else this.count++
-    this.tc.send(_.QUIZ.NEXTQUIZ(this.count))
+    if (typeof this.count !== 'number') this.count = 1; else this.count++
+    this.tc.send(f(lang.nextsong, this.count))
     this.correct = false
     this.current = this.songs[Math.floor(Math.random() * this.songs.length)]
     this.current.answers = songReplace(this.current.title).filter(e => e)
-    logger.info(require(`util`).inspect(this.current))
+    logger.info(require('util').inspect(this.current))
     if (!this.current.answers.length) this.preQuiz()
     else this.timeout = this.client.setTimeout(() => this.quiz(), 5000)
   }
@@ -144,12 +145,12 @@ class Game {
    * @private
    */
   quiz() {
-    this.tc.send(_.QUIZ.START)
-    const stream = ytdl(this.current.id, {filter: `audioonly`})
+    this.tc.send(lang.start)
+    const stream = ytdl(this.current.id, {filter: 'audioonly'})
     this.dispatcher = this.connection.playStream(stream)
-      .on(`end`, () => {
+      .on('end', () => {
         if (!this.correct)
-          this.tc.send(_.QUIZ.UNCORRECT(this.current.title))
+          this.tc.send(f(lang.uncorrect, this.current.title))
         if (this.status) this.preQuiz()
       })
   }
@@ -192,7 +193,7 @@ class Game {
     if (this.current.answers.map(a => a.toLowerCase()).some(answer => text.toLowerCase().includes(answer)) ||
     ((/\w/g).test(text) && this.current.title.includes(text))) { // needs to be 100% match but easy than others, you can't type just "-" or something
       this.correct = true
-      this.tc.send(_.QUIZ.CORRECT(this.current.title))
+      this.tc.send(f(lang.correct, this.current.title))
       this.dispatcher.end()
     }
   }
