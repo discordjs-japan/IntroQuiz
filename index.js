@@ -77,14 +77,14 @@ commands.help = {
       const cmd = commands[split[1]]
       if (!cmd || !cmd.description && !cmd.usage)
         return msg.channel.send(_.NO_COMMAND)
-      const embed = new discord.RichEmbed()
+      const embed = new discord.MessageEmbed()
         .setTitle(split[1])
         .setTimestamp()
       if (cmd.description) embed.setDescription(cmd.description)
       if (cmd.usage) cmd.usage.forEach(usage => embed.addField(...usage))
       msg.channel.send(embed)
     } else {
-      const embed = new discord.RichEmbed()
+      const embed = new discord.MessageEmbed()
         .setTitle(_.HELP.COMMANDS)
         .setTimestamp()
       Object.keys(commands).forEach(cmd => {
@@ -107,16 +107,16 @@ commands.quiz = {
     if (split[1] === `start`) {
       let game = games.get(msg.guild.id)
       if (!game) {
-        if (!msg.member.voiceChannel)
+        if (!msg.member.voice.channel)
           return msg.channel.send(_.JOIN_VC.TRYAGAIN)
         game = new Game(client)
         games.set(msg.guild.id, game)
       } else if (game.status) return
-      if (!msg.member.voiceChannel) return msg.channel.send(_.JOIN_VC.TRYAGAIN)
+      if (!msg.member.voice.channel) return msg.channel.send(_.JOIN_VC.TRYAGAIN)
       msg.channel.send(_.QUIZ.LOADING)
       const list = await playlist(split[2])
       if (!Array.isArray(list)) return msg.channel.send(list)
-      game.init(msg.channel, msg.member.voiceChannel)
+      game.init(msg.channel, msg.member.voice.channel)
       const songs = list.map(video => ({
         id: video.resourceId.videoId,
         title: video.title,
@@ -137,7 +137,7 @@ commands.test = {
   run(msg) {
     const text = msg.content.replace(env.PREFIX + `test `, ``)
     const answers = songReplace(text)
-    const embed = new discord.RichEmbed()
+    const embed = new discord.MessageEmbed()
       .setTitle(`判定テスト`)
       .addField(`1つ目の答え`, `\`${answers[1]}\``)
       .addField(`2つ目の答え`, `\`${answers[2]}\``)

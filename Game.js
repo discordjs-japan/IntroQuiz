@@ -146,8 +146,8 @@ class Game {
   quiz() {
     this.tc.send(_.QUIZ.START)
     const stream = ytdl(this.current.id, {filter: `audioonly`})
-    this.dispatcher = this.connection.playStream(stream)
-      .on(`end`, () => {
+    this.dispatcher = this.connection.play(stream)
+      .on(`finish`, () => {
         if (!this.correct)
           this.tc.send(_.QUIZ.UNCORRECT(this.current.title))
         if (this.status) this.preQuiz()
